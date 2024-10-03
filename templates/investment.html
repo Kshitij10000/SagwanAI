@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %} Investment {% endblock title %}
+
+{% block body %}
+<div class="container mt-5">
+    <div class="header-title">
+        Investment Options
+    </div>
+    
+    <!-- Dropdown for Selecting Additional Columns -->
+    <div class="mb-3">
+        <button class="btn btn-secondary dropdown-toggle" type="button" id="columnDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Select Columns
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="columnDropdown">
+            <li>
+                <div class="form-check ms-3">
+                    <input class="form-check-input column-toggle" type="checkbox" value="total_cash_per_share" id="toggleTotalCashPerShare">
+                    <label class="form-check-label" for="toggleTotalCashPerShare">
+                        Total Cash Per Share
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="form-check ms-3">
+                    <input class="form-check-input column-toggle" type="checkbox" value="two_hundred_day_average" id="toggleTwoHundredDayAverage">
+                    <label class="form-check-label" for="toggleTwoHundredDayAverage">
+                        200-Day Average
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="form-check ms-3">
+                    <input class="form-check-input column-toggle" type="checkbox" value="fifty_day_average" id="toggleFiftyDayAverage">
+                    <label class="form-check-label" for="toggleFiftyDayAverage">
+                        50-Day Average
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="form-check ms-3">
+                    <input class="form-check-input column-toggle" type="checkbox" value="float_shares" id="toggleFloatShares">
+                    <label class="form-check-label" for="toggleFloatShares">
+                        Float Shares
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="form-check ms-3">
+                    <input class="form-check-input column-toggle" type="checkbox" value="held_percent_insiders" id="toggleHeldPercentInsiders">
+                    <label class="form-check-label" for="toggleHeldPercentInsiders">
+                        Held % Insiders
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="form-check ms-3">
+                    <input class="form-check-input column-toggle" type="checkbox" value="held_percent_institutions" id="toggleHeldPercentInstitutions">
+                    <label class="form-check-label" for="toggleHeldPercentInstitutions">
+                        Held % Institutions
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="form-check ms-3">
+                    <input class="form-check-input column-toggle" type="checkbox" value="implied_shares_outstanding" id="toggleImpliedSharesOutstanding">
+                    <label class="form-check-label" for="toggleImpliedSharesOutstanding">
+                        Implied Shares Outstanding
+                    </label>
+                </div>
+            </li>
+            <li>
+                <div class="form-check ms-3">
+                    <input class="form-check-input column-toggle" type="checkbox" value="ebitda" id="toggleEBITDA">
+                    <label class="form-check-label" for="toggleEBITDA">
+                        EBITDA
+                    </label>
+                </div>
+            </li>
+            <!-- Add more columns as needed -->
+        </ul>
+    </div>
+    
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered mt-4" id="investmentTable">
+            <thead>
+                <tr>
+                    <!-- Default Columns -->
+                    <th>Symbol</th>
+                    <th>Long Name</th>
+                    <th>Market Cap</th>
+                    <th>Revenue</th>
+                    <th>Net Income</th>
+                    <th>Total Cash</th>
+                    <th>Expected Revenue from current profit</th>
+                    <th>Expected Market cap From Expected Revenue</th>
+                    
+                    <!-- Additional Columns -->
+                    <th class="additional-column" data-column="total_cash_per_share">Total Cash Per Share</th>
+                    <th class="additional-column" data-column="two_hundred_day_average">200-Day Avg</th>
+                    <th class="additional-column" data-column="fifty_day_average">50-Day Avg</th>
+                    <th class="additional-column" data-column="float_shares">Float Shares</th>
+                    <th class="additional-column" data-column="held_percent_insiders">Held % Insiders</th>
+                    <th class="additional-column" data-column="held_percent_institutions">Held % Institutions</th>
+                    <th class="additional-column" data-column="implied_shares_outstanding">Implied Shares Outstanding</th>
+                    <th class="additional-column" data-column="ebitda">EBITDA</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in financial_data %}
+                <tr>
+                    <!-- Default Columns -->
+                    <td>{{ data.symbol }}</td>
+                    <td>{{ data.long_name }}</td>
+                    <td>{{ data.market_cap }}</td>
+                    <td>{{ data.total_revenue }}</td>
+                    <td>{{ data.net_income_to_common }}</td>
+                    <td>{{ data.total_cash }}</td>
+                    
+                    <!-- Additional Columns -->
+                    <td class="additional-column" data-column="total_cash_per_share">{{ data.total_cash_per_share }}</td>
+                    <td class="additional-column" data-column="two_hundred_day_average">{{ data.two_hundred_day_average }}</td>
+                    <td class="additional-column" data-column="fifty_day_average">{{ data.fifty_day_average }}</td>
+                    <td class="additional-column" data-column="float_shares">{{ data.float_shares }}</td>
+                    <td class="additional-column" data-column="held_percent_insiders">{{ data.held_percent_insiders }}</td>
+                    <td class="additional-column" data-column="held_percent_institutions">{{ data.held_percent_institutions }}</td>
+                    <td class="additional-column" data-column="implied_shares_outstanding">{{ data.implied_shares_outstanding }}</td>
+                    <td class="additional-column" data-column="ebitda">{{ data.ebitda }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="16" class="text-center">No financial data available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- JavaScript for Dynamic Column Selection -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Function to toggle column visibility
+        function toggleColumn(columnName, show) {
+            // Toggle header
+            const header = document.querySelector(`th[data-column="${columnName}"]`);
+            if (header) {
+                header.style.display = show ? '' : 'none';
+            }
+
+            // Toggle each cell in the column
+            const cells = document.querySelectorAll(`td[data-column="${columnName}"]`);
+            cells.forEach(function(cell) {
+                cell.style.display = show ? '' : 'none';
+            });
+        }
+
+        // Initialize: Hide all additional columns by default
+        const additionalColumns = document.querySelectorAll('.additional-column');
+        additionalColumns.forEach(function(col) {
+            col.style.display = 'none';
+        });
+
+        // Add event listeners to checkboxes
+        const checkboxes = document.querySelectorAll('.column-toggle');
+        checkboxes.forEach(function(checkbox) {
+            checkbox.addEventListener('change', function() {
+                const columnName = this.value;
+                const isChecked = this.checked;
+                toggleColumn(columnName, isChecked);
+            });
+        });
+    });
+</script>
+{% endblock body %}

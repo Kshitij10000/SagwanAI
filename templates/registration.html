@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        form {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%; 
+            max-width: 400px; /* Increased max-width for a better desktop view */
+            box-sizing: border-box;
+        }
+
+        h3 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5c67f2;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #4a54e1;
+        }
+
+        @media (min-width: 601px) {
+            form {
+                padding: 50px; /* More padding to fill larger form size */
+                width: 400px; /* Appropriate fixed width for desktop */
+            }
+
+            h3 {
+                font-size: 1.8em; /* Slightly larger text for desktop */
+            }
+        }
+    </style>
+</head>
+<body>
+    <form action="/registration" method="post">
+        {% csrf_token %}
+        <h3>Register Here</h3>
+
+        <!-- Name field -->
+        <label for="signup_username">Name:</label>
+        <input type="text" id="signup_username" name="signup_username" placeholder="Enter your username" required>
+
+        <!-- Email field -->
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" placeholder="Enter your email" required>
+
+        <!-- Password field -->
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="Create a password" required>
+
+        <!-- Confirm Password field -->
+        <label for="confirm_password">Confirm Password:</label>
+        <input type="password" id="confirm_password" name="confirm_password" placeholder="Confirm your password" required>
+
+        <button type="submit">Register</button>
+    </form>
+</body>
+</html>

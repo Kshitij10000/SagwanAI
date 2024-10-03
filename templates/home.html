@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}
+Home
+{% endblock title %}
+
+{% block body %}
+
+<style>
+    .ticker-wrap {
+        background-color: #333;
+        width: 100%;
+        overflow: hidden;
+        position: relative;
+        height: 50px;
+        color: #fff;
+        padding: 10px 0;
+    }
+    
+    .ticker {
+        display: flex;
+        white-space: nowrap;
+        will-change: transform;
+        animation: ticker 30s linear infinite;
+    }
+    
+    .ticker__item {
+        padding: 0 50px;
+    }
+    
+    @keyframes ticker {
+        from { transform: translateX(0); }
+        to { transform: translateX(-50%); }
+    }
+</style>
+
+<script>
+  function updateStockData() {
+    fetch('api/v1/market-data-live/home-banner-tickers')
+        .then(response => response.json())
+        .then(data => {
+            const stocks = data.stocks;
+            let tickerHTML = '';
+            stocks.forEach(stock => {
+                tickerHTML += `<div class="ticker__item">${stock.name}: ${stock.price}</div>`;
+            });
+            // Duplicate the ticker items for continuous animation
+            document.querySelector('.ticker').innerHTML = tickerHTML + tickerHTML; // Populate both sets initially
+        })
+        .catch(error => console.error('Error fetching stock data:', error));
+  }
+
+// Update stock data every 10 seconds
+setInterval(updateStockData, 10000);
+
+// Initial fetch when page loads
+document.addEventListener('DOMContentLoaded', updateStockData);
+</script>
+
+<div class="ticker-wrap">
+    <div class="ticker">
+        <!-- This will be filled by JavaScript -->
+    </div> 
+</div>
+
+<div class="container-fluid px-0">
+    <div id="carouselExampleAutoplaying" class="carousel slide" data-bs-ride="carousel">
+        <div class="carousel-inner">
+            <div class="carousel-item active">
+                <img src="/static/index/carousal1.jpg" class="d-block w-100" alt="..." style="width: 800px; height: 500px;">
+            </div>
+            <div class="carousel-item">
+                <img src="/static/index/carousal2.jpg" class="d-block w-100" alt="..." style="width: 800px; height: 500px;">
+            </div>
+            <div class="carousel-item">
+                <img src="/static/index/carousal3.jpg" class="d-block w-100" alt="..." style="width: 800px; height: 500px;">
+            </div>
+        </div>
+        <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="prev">
+            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+            <span class="visually-hidden">Previous</span>
+        </button>
+        <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
+            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+            <span the="visually-hidden">Next</span>
+        </button>
+    </div>
+</div>
+
+<div style="font-family: 'Arial', sans-serif; color: #333; background-color: #f4f4f9; padding: 20px; border-radius: 8px; box-shadow: 0 2px 15px rgba(0,0,0,0.1);">
+    <h1 style="color: #0056b3; font-size: 28px; font-weight: bold;">Welcome to Nirmaan.Finance</h1>
+    <p style="font-size: 18px; line-height: 1.6;">
+        At <strong>Nirmaan.Finance</strong>, we leverage cutting-edge artificial intelligence to revolutionize your financial experience.
+        Dive into real-time updates on <strong>Nifty</strong> and <strong>BankNifty</strong>, and 
+        seize investment opportunities with unprecedented precision. Our advanced AI-driven Bot Trading platform empowers
+        both new and seasoned investors to make smarter, faster, and more effective investment decisions.
+    </p>
+    <img src="https://via.placeholder.com/400x200.png?text=Nirmaan.Finance" alt="Nirmaan Finance" style="width: 100%; max-width: 400px; height: auto; border-radius: 5px; margin-top: 20px;">
+    <div style="margin-top: 20px;">
+        <a href="/about-us" style="background-color: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-weight: bold;">Learn More About Us</a>
+    </div>
+</div>
+
+{% endblock %}

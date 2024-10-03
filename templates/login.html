@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        form {
+            background-color: white;
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 300px; /* Maximum width of the form */
+            box-sizing: border-box;
+        }
+
+        h1, h3 {
+            text-align: center;
+            color: #333;
+            margin: 0 0 20px; /* Adjusting margins to reduce space on mobile */
+        }
+
+        label {
+            color: #666;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5c67f2;
+            border: none;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #4a54e1;
+        }
+
+        .registration-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .registration-link a {
+            color: #5c67f2;
+            text-decoration: none;
+        }
+
+        .registration-link a:hover {
+            text-decoration: underline;
+        }
+
+        /* Media query for larger screens */
+        @media (min-width: 601px) {
+            form {
+                padding: 40px; /* More padding for larger screens */
+                width: 300px; /* Fixed width for larger screens */
+            }
+            h1, h3 {
+                font-size: 1.5em; /* Larger text for better readability on larger screens */
+            }
+        }
+    </style>
+</head>
+<body>
+    <form action="" method="post">
+        {% csrf_token %}
+        <h3>Login Here</h3>
+        <label for="signin_username">User Name:</label>
+        <input type="text" id="signin_username" name="signin_username" placeholder="Enter your Username" required>
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" placeholder="Create a password" required>
+        <button type="submit">Login</button>
+        <div class="registration-link">
+            <a href="/registration">Create New User</a>
+        </div>
+    </form>
+</body>
+</html>
