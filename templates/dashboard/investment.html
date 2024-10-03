@@ -1,8 +1,29 @@
-{% extends "base.html" %}
+{% extends "dashboard/base.html" %}
 
-{% block title %} Investment {% endblock title %}
+{% load static %}
 
-{% block body %}
+{% block title %}
+Investment
+{% endblock title %}
+
+{% block extra_css %}
+<!-- Investment Specific CSS -->
+<style>
+    .header-title {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+
+    .additional-column {
+        display: none; /* Hide additional columns by default */
+    }
+
+    /* Optional: Add any other investment-specific styles here */
+</style>
+{% endblock extra_css %}
+
+{% block content %}
 <div class="container mt-5">
     <div class="header-title">
         Investment Options
@@ -93,8 +114,8 @@
                     <th>Revenue</th>
                     <th>Net Income</th>
                     <th>Total Cash</th>
-                    <th>Expected Revenue from current profit</th>
-                    <th>Expected Market cap From Expected Revenue</th>
+                    <th>Expected Revenue from Current Profit</th>
+                    <th>Expected Market Cap From Expected Revenue</th>
                     
                     <!-- Additional Columns -->
                     <th class="additional-column" data-column="total_cash_per_share">Total Cash Per Share</th>
@@ -117,6 +138,8 @@
                     <td>{{ data.total_revenue }}</td>
                     <td>{{ data.net_income_to_common }}</td>
                     <td>{{ data.total_cash }}</td>
+                    <td>{{ data.expected_revenue_current_profit }}</td>
+                    <td>{{ data.expected_market_cap_expected_revenue }}</td>
                     
                     <!-- Additional Columns -->
                     <td class="additional-column" data-column="total_cash_per_share">{{ data.total_cash_per_share }}</td>
@@ -137,8 +160,10 @@
         </table>
     </div>
 </div>
+{% endblock content %}
 
-<!-- JavaScript for Dynamic Column Selection -->
+{% block extra_js %}
+<!-- Investment Specific JavaScript -->
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         // Function to toggle column visibility
@@ -173,4 +198,4 @@
         });
     });
 </script>
-{% endblock body %}
+{% endblock extra_js %}

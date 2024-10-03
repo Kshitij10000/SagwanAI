@@ -1,0 +1,71 @@
+{% extends "dashboard/base.html" %}
+
+{% load static %}
+
+{% block title %}
+FinNifty
+{% endblock title %}
+
+{% block extra_css %}
+<!-- FinNifty Specific CSS (Add any custom styles here) -->
+<style>
+    .header-title {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    
+    .content-text {
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="header-title">
+        FinNifty Insights
+    </div>
+    
+    <div class="content-text">
+        <p>
+            Welcome to the FinNifty page! Here, you'll find comprehensive information, updates, and insights related to FinNifty.
+            Whether you're tracking market trends, analyzing performance metrics, or exploring investment opportunities, this page
+            serves as your go-to resource.
+        </p>
+        <p>
+            Stay informed with the latest developments and expert analyses to make informed decisions in your financial endeavors.
+        </p>
+        
+        <!-- Example of Adding More Text Content -->
+        <h3>Latest Developments</h3>
+        <p>
+            FinNifty continues to demonstrate robust performance, influenced by various economic factors and market sentiments.
+            Investors are encouraged to monitor key indicators and leverage data-driven strategies to navigate the financial landscape effectively.
+        </p>
+        
+        <h3>Key Highlights</h3>
+        <ul>
+            <li><strong>Current Index Value:</strong> 35,200</li>
+            <li><strong>Day's High:</strong> 35,500</li>
+            <li><strong>Day's Low:</strong> 34,800</li>
+            <li><strong>Volume Traded:</strong> 900,000 Shares</li>
+        </ul>
+        
+        <p>
+            For more detailed analyses and personalized investment strategies, consider consulting with financial experts or utilizing advanced trading tools.
+        </p>
+    </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<!-- FinNifty Specific JavaScript (Add any custom scripts here) -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('FinNifty page loaded successfully.');
+        // Add any additional JavaScript functionality here
+    });
+</script>
+{% endblock extra_js %}

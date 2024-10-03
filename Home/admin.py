@@ -47,3 +47,11 @@ class StockFinancialDataAdmin(admin.ModelAdmin):
     )
     search_fields = ('symbol',) 
   
+class ProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'bio', 'profile_image')
+    search_fields = ('user__username', 'user__email')
+
+class UserDataAdmin(admin.ModelAdmin):
+    list_display = ('user', 'created_at')
+    search_fields = ('user__username', 'text_input')
+    list_filter = ('created_at',)  

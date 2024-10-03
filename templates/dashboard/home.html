@@ -1,61 +1,20 @@
-{% extends "base.html" %}
+{% extends "dashboard/base.html" %} 
 
 {% block title %}
 Home
 {% endblock title %}
 
-{% block body %}
+{% block content %}
 
 <style>
-    .ticker-wrap {
-        background-color: #333;
-        width: 100%;
-        overflow: hidden;
-        position: relative;
-        height: 50px;
-        color: #fff;
-        padding: 10px 0;
-    }
-    
-    .ticker {
-        display: flex;
-        white-space: nowrap;
-        will-change: transform;
-        animation: ticker 30s linear infinite;
-    }
-    
-    .ticker__item {
-        padding: 0 50px;
-    }
-    
-    @keyframes ticker {
-        from { transform: translateX(0); }
-        to { transform: translateX(-50%); }
-    }
+    /* Your existing CSS styles */
 </style>
 
 <script>
-  function updateStockData() {
-    fetch('api/v1/market-data-live/home-banner-tickers')
-        .then(response => response.json())
-        .then(data => {
-            const stocks = data.stocks;
-            let tickerHTML = '';
-            stocks.forEach(stock => {
-                tickerHTML += `<div class="ticker__item">${stock.name}: ${stock.price}</div>`;
-            });
-            // Duplicate the ticker items for continuous animation
-            document.querySelector('.ticker').innerHTML = tickerHTML + tickerHTML; // Populate both sets initially
-        })
-        .catch(error => console.error('Error fetching stock data:', error));
-  }
-
-// Update stock data every 10 seconds
-setInterval(updateStockData, 10000);
-
-// Initial fetch when page loads
-document.addEventListener('DOMContentLoaded', updateStockData);
+  /* Your existing JavaScript code */
 </script>
+
+<!-- Your existing HTML content -->
 
 <div class="ticker-wrap">
     <div class="ticker">
@@ -82,7 +41,7 @@ document.addEventListener('DOMContentLoaded', updateStockData);
         </button>
         <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleAutoplaying" data-bs-slide="next">
             <span class="carousel-control-next-icon" aria-hidden="true"></span>
-            <span the="visually-hidden">Next</span>
+            <span class="visually-hidden">Next</span> <!-- Corrected here -->
         </button>
     </div>
 </div>
@@ -101,4 +60,4 @@ document.addEventListener('DOMContentLoaded', updateStockData);
     </div>
 </div>
 
-{% endblock %}
+{% endblock content %}

@@ -1,0 +1,84 @@
+{% extends "dashboard/base.html" %}
+
+{% load static %}
+
+{% block title %}
+Contact
+{% endblock title %}
+
+{% block extra_css %}
+<!-- Contact Page Specific CSS -->
+<style>
+    .header-title {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 20px;
+    }
+    
+    .contact-image {
+        width: 100%;
+        height: auto;
+        max-height: 500px;
+        object-fit: cover;
+    }
+    
+    .contact-form {
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .form-label {
+        font-weight: 500;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container-fluid px-0 mb-3"> 
+    <img src="{% static 'contact_us.jpg' %}" class="d-block w-100 contact-image" alt="Contact Us">
+</div>
+
+<div class="container py-4"> 
+
+    <h1 class="text-center py-4 header-title">Contact Us</h1>   
+    
+    <form method="post" action="{% url 'contactus' %}" class="contact-form">
+        {% csrf_token %}
+        
+        <div class="mb-3">
+            <label for="name" class="form-label">Name</label>
+            <input type="text" class="form-control" id="name" name="name" placeholder="Enter your Name" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" class="form-control" id="email" name="email"  placeholder="Enter your Email" required>
+        </div>
+        
+        <div class="mb-3">
+            <label for="phone" class="form-label">Phone</label>
+            <input type="tel" pattern="[0-9]{10}" class="form-control" id="phone" name="phone" placeholder="Enter your Phone Number" required>
+            <small class="form-text text-muted">Enter a 10-digit phone number.</small>
+        </div>
+
+        <div class="mb-3">
+            <label for="desc" class="form-label">Reason to Contact</label>
+            <textarea class="form-control" id="desc" rows="3" name="desc" placeholder="Enter your message here..." required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary mb-3">Submit</button>
+
+    </form>
+
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<!-- Contact Page Specific JavaScript -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('Contact page loaded successfully.');
+        // Add any additional JavaScript functionality here
+    });
+</script>
+{% endblock extra_js %}

@@ -7,60 +7,110 @@ from django.contrib.auth import authenticate , login , logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.http import HttpResponse 
-from .models import stockdata_live_banner , Contact_us , NseTickers , NseStockFinancialData
+from .models import stockdata_live_banner , Contact_us , NseTickers , NseStockFinancialData , Profile, UserData
 from django.http import JsonResponse
 from .yahoo_pull import get_instrument_past_data
 import os
 import json
 from django.conf import settings
+from .forms import  ProfileUpdateForm, UserDataForm 
 
 
+# User Login View
 def login_user(request):
     if request.method == 'POST':
         signin_username = request.POST.get('signin_username')
         signin_password = request.POST.get('password')
-        user_auth = authenticate(request,username = signin_username , password = signin_password)
+        user_auth = authenticate(request, username=signin_username, password=signin_password)
         if user_auth is not None:
-            login(request,user_auth)
-            return redirect('/home')
-        else: 
-            print("login id is wrong")
-    return render(request,'login.html') 
+            login(request, user_auth)
+            return redirect('home')
+        else:
+            messages.error(request, "Invalid username or password.")
+    return render(request, 'login_user.html')
 
-def registration_user(request):
+# User Registration View
+def create_user(request):
     if request.method == 'POST':
-        signup_name = request.POST.get('signup_username')
-        signup_email = request.POST.get('email')
-        signup_password = request.POST.get('password')
-        signup_confirm_password = request.POST.get('confirm_password')
+        signup_username = request.POST.get('signup_username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        confirm_password = request.POST.get('confirm_password')
 
-        if signup_password != signup_confirm_password:
-            messages.error(request, "Passwords do not match!")
-            return render(request, 'registration.html')
+        if password != confirm_password:
+            messages.error(request, "Passwords do not match.")
+            return render(request, 'create_user.html')
 
         try:
-            if User.objects.filter(username=signup_name).exists():
-                messages.error(request, "Username already taken. Please choose a different username.")
-                return render(request, 'registration.html')
-
-            user = User.objects.create_user(username=signup_name, email=signup_email, password=signup_password)
-            messages.success(request, "Registration successful!")
-
-            return redirect('Login')  # Redirect to a success page or login page
-        except IntegrityError:
-            messages.error(request, "A user with that username already exists.")
+            user = User.objects.create_user(username=signup_username, email=email, password=password)
+            user.save()
+            messages.success(request, "Registration successful! You can now log in.")
+            return redirect('login_user')
         except Exception as e:
-            messages.error(request, f"An error occurred: {str(e)}")
+            messages.error(request, f"Registration failed: {e}")
+            return render(request, 'create_user.html')
+    else:
+        return render(request, 'create_user.html')
 
-    return render(request, 'registration.html')
-
+# User Logout View
 def logout_user(request):
     logout(request)
-    return redirect('Login')
+    messages.success(request, "You have been logged out successfully.")
+    return redirect('login_user')
 
 @login_required(login_url='Login')
 def home(request):
-    return render(request,'home.html')
+    return render(request,'dashboard/home.html')
+
+def search_stock():
+    pass
+
+# Profile Update View
+@login_required(login_url='login_user')
+def update_profile(request):
+    if request.method == 'POST':
+        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=request.user.profile)
+        if p_form.is_valid():
+            p_form.save()
+            messages.success(request, "Your profile has been updated!")
+            return redirect('profile')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        p_form = ProfileUpdateForm(instance=request.user.profile)
+    userdata = UserData.objects.filter(user=request.user).order_by('-created_at')
+    context = {
+        'p_form': p_form,
+        'userdata': userdata
+    }
+    return render(request, 'dashboard/profile.html', context)
+
+@login_required(login_url='login_user')
+def profile(request):
+    try:
+        profile_instance = request.user.profile
+    except Profile.DoesNotExist:
+        # Optionally, create the profile here if it doesn't exist
+        profile_instance = Profile.objects.create(user=request.user)
+        messages.info(request, "Profile created for you. You can update it below.")
+
+    if request.method == 'POST':
+        p_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile_instance)
+        if p_form.is_valid():
+            p_form.save()
+            messages.success(request, "Your profile has been updated!")
+            return redirect('profile')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        p_form = ProfileUpdateForm(instance=profile_instance)
+
+    userdata = UserData.objects.filter(user=request.user).order_by('-created_at')
+    context = {
+        'p_form': p_form,
+        'userdata': userdata
+    }
+    return render(request, 'dashboard/profile.html', context)
 
 def get_ticker_banner_data(request):
     data = stockdata_live_banner.objects.values('name', 'price')
@@ -83,10 +133,10 @@ def send_gmail(request):
         
         return redirect('email_form') 
     
-    return render(request, 'email_form.html')
+    return render(request, 'dashboard/email_form.html')
 
 def email_form(request):
-    return render(request, 'email_form.html')
+    return render(request, 'dashboard/email_form.html')
 
 
 @login_required(login_url='Login')
@@ -95,7 +145,7 @@ def investments(request):
     context = {
         'financial_data': financial_data
     }
-    return render(request, 'investment.html', context)
+    return render(request, 'dashboard/investment.html', context)
 
 # Define the path to watchlist_data folder
 WATCHLIST_DATA_PATH = os.path.join(settings.BASE_DIR, 'watchlist_data')
@@ -164,7 +214,7 @@ def watchlist(request):
         'tickers': stocks,
         'default_category': default_category
     }
-    return render(request, 'watchlist.html', context)
+    return render(request, 'dashboard/watchlist.html', context)
 
 def get_stock_data_api(request):
     """
@@ -217,16 +267,16 @@ def get_stock_data_api(request):
 
 
 def banknifty(request):
-    return render(request,'banknifty.html')
+    return render(request,'dashboard/banknifty.html')
 
 def finnifty(request):
-    return render(request,'finnifty.html')
+    return render(request,'dashboard/finnifty.html')
 
 def midcapnifty(request):
     return HttpResponse("This is contact page") 
 
 def send_report(request):
-    return render(request,'send_report.html')
+    return render(request,'dashboard/send_report.html')
 
 def contactus(request):
     if request.method == "POST":
@@ -238,5 +288,5 @@ def contactus(request):
         contact_data = Contact_us(name=name,email=email,phone=phone,desc=desc,date_time=date_time)
         contact_data.save()
         messages.success(request, "Your message is sent.")
-    return render(request,'contactus.html') 
+    return render(request,'dashboard/contactus.html') 
 

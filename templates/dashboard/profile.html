@@ -1,0 +1,71 @@
+<!-- dashboard/templates/dashboard/profile.html -->
+{% extends "dashboard/base.html" %}
+
+{% block title %}
+{{ user.username }}'s Profile - Insurance Dashboard
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>{{ user.username }}'s Profile</h2>
+
+    <!-- Profile Update Form -->
+    <div class="row">
+        <div class="col-md-6"> <!-- Adjusted to take half the width on medium+ screens -->
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ p_form.as_p }}
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </form>
+        </div>
+        <div class="col-md-6"> <!-- New column for additional profile info or layout adjustments -->
+            {% if user.profile.profile_image %}
+            <img src="{{ user.profile.profile_image.url }}" alt="{{ user.username }}'s Profile Image"
+                class="img-thumbnail" style="max-width: 150px;">
+            {% else %}
+            <i class="bi bi-person-circle fs-1"></i>
+            {% endif %}
+        </div>
+    </div>
+
+    <hr>
+
+    <!-- User Data Section -->
+    <h3>Your Data</h3>
+    <a href="{% url 'home' %}" class="btn btn-success mb-3">Add New Data</a>
+    {% if userdata %}
+    <div class="list-group">
+        {% for data in userdata %}
+        <div class="list-group-item list-group-item-action flex-column align-items-start">
+            <div class="d-flex w-100 justify-content-between">
+                <h5 class="mb-1">Entry on {{ data.created_at|date:"F d, Y" }}</h5>
+                <small>
+                    <a href="{% url 'edit_user_data' data.id %}" class="btn btn-sm btn-outline-secondary me-2">
+                        <i class="bi bi-pencil-square"></i> Edit
+                    </a>
+                    <a href="{% url 'delete_user_data' data.id %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i> Delete
+                    </a>
+                </small>
+            </div>
+            <p class="mb-1">{{ data.text_input|truncatewords:20 }}</p>
+            {% if data.voice_input %}
+            <audio controls>
+                <source src="{{ data.voice_input.url }}" type="audio/mpeg">
+                Your browser does not support the audio element.
+            </audio>
+            {% endif %}
+            {% if data.video_input %}
+            <video width="320" height="240" controls>
+                <source src="{{ data.video_input.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p>You have not submitted any data yet.</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User 
+
 
 # Create your models here.
 class Contact_us(models.Model):
@@ -70,4 +72,27 @@ class NseStockFinancialData(models.Model):
     
     
     def __str__(self):
-        return self.symbol
+        return self.symbol 
+    
+
+# Profile model extending User
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    # Add additional fields as needed
+    # Example:
+    bio = models.TextField(blank=True, null=True)
+    profile_image = models.ImageField(upload_to='profile_images/', blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s Profile"
+
+# UserData model to store user inputs
+class UserData(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userdata')
+    text_input = models.TextField(blank=True, null=True)
+    voice_input = models.FileField(upload_to='voices/', blank=True, null=True)
+    video_input = models.FileField(upload_to='videos/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Data by {self.user.username} on {self.created_at.strftime('%Y-%m-%d')}"    
