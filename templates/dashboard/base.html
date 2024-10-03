@@ -94,7 +94,7 @@
                 </form>
               </li>
               {% if user.is_staff %}
-              <li><a class="dropdown-item" href="{% url 'admin' %}"><i class="bi bi-tools me-2"></i>Admin Settings</a></li>
+              <li><a class="dropdown-item" href="{% url 'admin:index' %}"><i class="bi bi-tools me-2"></i>Admin Settings</a></li>
               {% endif %}
             </ul>
           </div>

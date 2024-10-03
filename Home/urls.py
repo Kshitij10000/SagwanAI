@@ -4,6 +4,7 @@ from Home import views
 from django.shortcuts import redirect
 from . import views
 
+
 urlpatterns = [
     path('', lambda request: redirect('login_user'), name='root'),
     path('login/', views.login_user , name='login_user'),
