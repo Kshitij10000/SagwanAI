@@ -7,13 +7,13 @@ from django.contrib.auth import authenticate , login , logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.http import HttpResponse 
-from .models import stockdata_live_banner , Contact_us , NseTickers , NseStockFinancialData , Profile, UserData
+from .models import stockdata_live_banner , Contact_us , NseTickers , NseStockFinancialData , Profile,Broker, FyersCredentials
 from django.http import JsonResponse
 from .yahoo_pull import get_instrument_past_data
 import os
 import json
 from django.conf import settings
-from .forms import  ProfileUpdateForm, UserDataForm 
+from .forms import  ProfileUpdateForm , FyersCredentialsForm
 
 
 # User Login View
@@ -78,10 +78,10 @@ def update_profile(request):
             messages.error(request, "Please correct the errors below.")
     else:
         p_form = ProfileUpdateForm(instance=request.user.profile)
-    userdata = UserData.objects.filter(user=request.user).order_by('-created_at')
+    
     context = {
         'p_form': p_form,
-        'userdata': userdata
+        
     }
     return render(request, 'dashboard/profile.html', context)
 
@@ -105,10 +105,10 @@ def profile(request):
     else:
         p_form = ProfileUpdateForm(instance=profile_instance)
 
-    userdata = UserData.objects.filter(user=request.user).order_by('-created_at')
+    
     context = {
         'p_form': p_form,
-        'userdata': userdata
+        
     }
     return render(request, 'dashboard/profile.html', context)
 
@@ -235,30 +235,59 @@ def get_stock_data_api(request):
     return JsonResponse(data)
 
 
+@login_required
+def manage_fyers_credentials(request):
+    try:
+        fyers_credentials = FyersCredentials.objects.get(user=request.user, broker__name='Fyers')
+    except FyersCredentials.DoesNotExist:
+        fyers_credentials = None
 
+    if request.method == 'POST':
+        if fyers_credentials:
+            form = FyersCredentialsForm(request.POST, instance=fyers_credentials)
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Fyers credentials updated successfully!")
+                return redirect('profile')
+            else:
+                messages.error(request, "Please correct the errors below.")
+        else:
+            form = FyersCredentialsForm(request.POST)
+            if form.is_valid():
+                fyers_cred = form.save(commit=False)
+                fyers_cred.user = request.user
+                fyers_cred.broker = Broker.objects.get(name='Fyers')
+                fyers_cred.save()
+                messages.success(request, "Fyers credentials added successfully!")
+                return redirect('profile')
+            else:
+                messages.error(request, "Please correct the errors below.")
+    else:
+        form = FyersCredentialsForm(instance=fyers_credentials)
 
+    context = {
+        'form': form,
+        'fyers_credentials': fyers_credentials,
+    }
+    return render(request, 'dashboard/manage_fyers_credentials.html', context)
 
+@login_required
+def delete_fyers_credentials(request):
+    try:
+        fyers_credentials = FyersCredentials.objects.get(user=request.user, broker__name='Fyers')
+    except FyersCredentials.DoesNotExist:
+        fyers_credentials = None
 
+    if not fyers_credentials:
+        messages.error(request, "You do not have any Fyers credentials to delete.")
+        return redirect('profile')
 
+    if request.method == 'POST':
+        fyers_credentials.delete()
+        messages.success(request, "Fyers credentials deleted successfully.")
+        return redirect('profile')
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    return render(request, 'dashboard/delete_fyers_credentials.html', {'fyers_credentials': fyers_credentials})
 
 
 

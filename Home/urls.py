@@ -26,5 +26,9 @@ urlpatterns = [
     path('api/get_stock_data/', views.get_stock_data_api, name='get_stock_data_api'),
     path('api/get_available_categories/', views.get_available_categories, name='get_available_categories'),
     path('api/get_stocks_by_category/', views.get_stocks_by_category, name='get_stocks_by_category'),
+
+    # Fyers Credentials URLs
+    path('profile/fyers_credentials/', views.manage_fyers_credentials, name='manage_fyers_credentials'),
+    path('profile/fyers_credentials/delete/', views.delete_fyers_credentials, name='delete_fyers_credentials'),
     
 ]

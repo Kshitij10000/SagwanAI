@@ -1,5 +1,5 @@
 from django.contrib import admin
-from Home.models import Contact_us ,stockdata_live_banner , Live_Stock_Banner_Ticker , NseTickers , NseStockFinancialData
+from Home.models import Contact_us ,stockdata_live_banner , Live_Stock_Banner_Ticker , NseTickers , NseStockFinancialData ,Profile ,Broker , FyersCredentials
 from .resources import NseTickersResource 
 from import_export.admin import ImportExportModelAdmin
 
@@ -47,11 +47,20 @@ class StockFinancialDataAdmin(admin.ModelAdmin):
     )
     search_fields = ('symbol',) 
   
+@admin.register(Profile)  
 class ProfileAdmin(admin.ModelAdmin):
     list_display = ('user', 'bio', 'profile_image')
     search_fields = ('user__username', 'user__email')
 
-class UserDataAdmin(admin.ModelAdmin):
-    list_display = ('user', 'created_at')
-    search_fields = ('user__username', 'text_input')
-    list_filter = ('created_at',)  
+
+@admin.register(Broker)
+class BrokerAdmin(admin.ModelAdmin):
+    list_display = ('name', 'api_documentation_url')
+    search_fields = ('name',)
+
+@admin.register(FyersCredentials)
+class FyersCredentialsAdmin(admin.ModelAdmin):
+    list_display = ('user', 'broker', 'ttop_key', 'client_id', 'created_at', 'updated_at')
+    search_fields = ('user__username', 'ttop_key', 'client_id')
+    list_filter = ('broker', 'created_at')
+    readonly_fields = ('created_at', 'updated_at')  # Prevent editing timestamps

@@ -85,14 +85,28 @@ class Profile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
-
-# UserData model to store user inputs
-class UserData(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='userdata')
-    text_input = models.TextField(blank=True, null=True)
-    voice_input = models.FileField(upload_to='voices/', blank=True, null=True)
-    video_input = models.FileField(upload_to='videos/', blank=True, null=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+  
+class Broker(models.Model):
+    name = models.CharField(max_length=50, unique=True)
+    api_documentation_url = models.URLField(blank=True, null=True)
 
     def __str__(self):
-        return f"Data by {self.user.username} on {self.created_at.strftime('%Y-%m-%d')}"    
+        return self.name
+
+class FyersCredentials(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fyers_credentials')
+    broker = models.ForeignKey(Broker, on_delete=models.CASCADE)
+    ttop_key = models.CharField(max_length=255)
+    client_id = models.CharField(max_length=255)
+    secret_key = models.CharField(max_length=255)
+    redirect_uri = models.URLField()
+    response_type = models.CharField(max_length=50)
+    state = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        unique_together = ('user', 'broker')  # Ensures one set of credentials per broker per user
+
+    def __str__(self):
+        return f"{self.user.username} - {self.broker.name}"
