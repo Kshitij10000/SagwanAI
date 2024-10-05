@@ -7,7 +7,8 @@ from django.contrib.auth import authenticate , login , logout
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.http import HttpResponse 
-from .models import stockdata_live_banner , Contact_us , NseTickers , NseStockFinancialData , Profile,Broker, FyersCredentials
+from .models import (stockdata_live_banner , Contact_us , Ticker , Category,
+                     NseStockFinancialData , Profile,Broker, FyersCredentials)
 from django.http import JsonResponse
 from .yahoo_pull import get_instrument_past_data
 import os
@@ -201,20 +202,43 @@ def watchlist(request):
     Renders the watchlist page with stocks from the default category.
     """
     default_category = 'India'  # Set your desired default category here
-    filename = f"{default_category.replace(' ', '_')}.json"
-    filepath = os.path.join(WATCHLIST_DATA_PATH, filename)
-    
-    if not os.path.exists(filepath):
-        stocks = []
+    try:
+        category = Category.objects.get(name=default_category)
+    except Category.DoesNotExist:
+        category = None
+
+    if category:
+        tickers = category.tickers.all()
     else:
-        with open(filepath, 'r') as f:
-            stocks = json.load(f)
-    
+        tickers = Ticker.objects.none()
+
+    categories = Category.objects.all()
+
     context = {
-        'tickers': stocks,
-        'default_category': default_category
+        'tickers': tickers,
+        'default_category': default_category,
+        'categories': categories,  # Pass all categories for dropdowns
     }
     return render(request, 'dashboard/watchlist.html', context)
+
+def get_stocks_by_category(request):
+    category_name = request.GET.get('category')
+    if not category_name:
+        return JsonResponse({'error': 'Category not provided.'}, status=400)
+
+    try:
+        category = Category.objects.get(name=category_name)
+    except Category.DoesNotExist:
+        return JsonResponse({'error': 'Category does not exist.'}, status=404)
+
+    tickers = category.tickers.all().values('symbol', 'name')
+    return JsonResponse({'stocks': list(tickers)})
+
+def get_available_categories(request):
+    categories = Category.objects.values_list('name', flat=True)
+    return JsonResponse({'categories': list(categories)}) 
+
+
 
 def get_stock_data_api(request):
     """

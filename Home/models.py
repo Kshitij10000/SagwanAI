@@ -110,3 +110,18 @@ class FyersCredentials(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - {self.broker.name}"
+    
+
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    def __str__(self):
+        return self.name 
+
+class Ticker(models.Model):
+    symbol = models.CharField(max_length=20, unique=True)
+    name = models.CharField(max_length=255)
+    category = models.ForeignKey(Category, related_name='tickers', on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.symbol} - {self.name}"        

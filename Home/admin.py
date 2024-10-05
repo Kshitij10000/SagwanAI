@@ -1,5 +1,6 @@
 from django.contrib import admin
-from Home.models import Contact_us ,stockdata_live_banner , Live_Stock_Banner_Ticker , NseTickers , NseStockFinancialData ,Profile ,Broker , FyersCredentials
+from Home.models import (Contact_us ,stockdata_live_banner , Live_Stock_Banner_Ticker , NseTickers , 
+                         NseStockFinancialData ,Profile ,Broker , FyersCredentials , Category , Ticker)
 from .resources import NseTickersResource 
 from import_export.admin import ImportExportModelAdmin
 
@@ -64,3 +65,14 @@ class FyersCredentialsAdmin(admin.ModelAdmin):
     search_fields = ('user__username', 'ttop_key', 'client_id')
     list_filter = ('broker', 'created_at')
     readonly_fields = ('created_at', 'updated_at')  # Prevent editing timestamps
+
+
+@admin.register(Category)
+class CategoryAdmin(admin.ModelAdmin):
+    list_display = ['id', 'name']
+
+@admin.register(Ticker)
+class TickerAdmin(admin.ModelAdmin):
+    list_display = ['id', 'symbol', 'name', 'category']
+    search_fields = ['symbol', 'name']
+    list_filter = ['category']

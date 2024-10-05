@@ -1,3 +1,5 @@
+<!-- dashboard/watchlist.html -->
+
 {% extends "dashboard/base.html" %}
 
 {% load static %}
@@ -9,11 +11,15 @@ ALL STOCKS
 {% block extra_css %}
 <!-- Watchlist Specific CSS -->
 <style>
-    body {
+    /* Removed body padding and background to prevent navbar shift */
+    /* Apply background and padding to a specific container instead */
+    
+    .watchlist-page {
         padding: 20px;
         background-color: #f8f9fa; /* Light background for better contrast */
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* Improved font */
     }
+
     #chart-container {
         position: relative;
         height: 70vh; /* Increased height from 60vh to 70vh */
@@ -101,7 +107,7 @@ ALL STOCKS
 {% block content %}
 <!-- watchlist.html -->
 
-<div class="container-fluid">
+<div class="container-fluid watchlist-page">
     <!-- Navbar for Ticker List on Mobile Devices -->
     <nav class="navbar navbar-expand-lg navbar-light bg-light d-lg-none mb-3">
         <div class="container-fluid">
@@ -440,7 +446,7 @@ ALL STOCKS
         });
     }
 
-    // Event Listener for Country (Category) Selection
+    // Event Listener for Category Selection
     function setupCategorySelection() {
         // Desktop Category Selection
         $('#category-select').on('change', function() {
