@@ -6,7 +6,7 @@ __pycache__/
 # C extensions
 *.so
 
-.ipynb
+ex.ipynb
 
 # Distribution / packaging
 .Python

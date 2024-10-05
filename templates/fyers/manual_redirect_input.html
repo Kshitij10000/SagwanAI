@@ -1,0 +1,60 @@
+<!-- templates/fyers/manual_redirect_input.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fyers Authentication - Manual Redirect</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+        }
+        input[type="url"] {
+            width: 100%;
+            padding: 10px;
+            margin-top: 10px;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 10px 20px;
+            margin-top: 15px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0069d9;
+        }
+    </style>
+    <script>
+        function submitRedirectURL() {
+            const redirectURL = document.getElementById('redirect_url').value;
+            if (!redirectURL) {
+                alert("Please enter the redirect URL.");
+                return false;
+            }
+            // Optionally, add more validation here
+            document.getElementById('redirect_form').submit();
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h2>Manual Redirect URL Input</h2>
+        <p>After completing the Fyers authentication in the new tab/window, you'll receive a redirect URL containing the auth code. Please paste that URL below.</p>
+        <form id="redirect_form" method="POST" action="{% url 'fyers_manual_callback' %}">
+            {% csrf_token %}
+            <div>
+                <label for="redirect_url">Redirect URL:</label>
+                <input type="url" id="redirect_url" name="redirect_url" placeholder="https://yourdomain.com/fyers/callback/?auth_code=..." required>
+            </div>
+            <button type="button" onclick="submitRedirectURL()">Submit</button>
+        </form>
+    </div>
+</body>
+</html>

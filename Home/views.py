@@ -15,7 +15,10 @@ import os
 import json
 from django.conf import settings
 from .forms import  ProfileUpdateForm , FyersCredentialsForm
-
+from .fyers_service import FyersService 
+from django.utils import timezone
+from datetime import datetime, timedelta 
+from urllib.parse import urlparse, parse_qs 
 
 # User Login View
 def login_user(request):
@@ -315,12 +318,183 @@ def delete_fyers_credentials(request):
 
 
 
+@login_required
+def fyers_manual_redirect_input(request):
+    """
+    Displays a form to input the redirect URL during development.
+    """
+    return render(request, 'fyers/manual_redirect_input.html')
+
+# View to handle the manual redirect URL submission
+@login_required
+def fyers_manual_callback(request):
+    """
+    Handles the manual redirect URL input during development.
+    """
+    if request.method == 'POST':
+        redirect_url = request.POST.get('redirect_url')
+        if not redirect_url:
+            messages.error(request, "No redirect URL provided.")
+            return redirect('fyers_manual_redirect_input')
+        
+        # Parse the redirect URL to extract auth_code
+        try:
+            parsed_url = urlparse(redirect_url)
+            query_params = parse_qs(parsed_url.query)
+            auth_code = query_params.get('auth_code')
+            if not auth_code:
+                messages.error(request, "Auth code not found in the redirect URL.")
+                return redirect('fyers_manual_redirect_input')
+            auth_code = auth_code[0]  # get the first auth_code if multiple
+        except Exception as e:
+            messages.error(request, f"Failed to parse redirect URL: {str(e)}")
+            return redirect('fyers_manual_redirect_input')
+        
+        # Proceed to generate access token and fetch username
+        try:
+            fyers_credentials = FyersCredentials.objects.get(user=request.user, broker__name='Fyers')
+        except FyersCredentials.DoesNotExist:
+            messages.error(request, "Fyers credentials not found. Please set up your Fyers credentials first.")
+            return redirect('manage_fyers_credentials')
+        
+        fyers_service = FyersService(fyers_credentials)
+        try:
+            access_token = fyers_service.generate_access_token(auth_code)
+        except Exception as e:
+            messages.error(request, f"Failed to generate access token: {str(e)}")
+            return redirect('fyers_manual_redirect_input')
+        
+        # Save access token and set token_expiry to current time + 1 day
+        fyers_credentials.access_token = access_token
+        fyers_credentials.token_expiry = timezone.now() + timedelta(days=1)
+        
+        # Get username
+        try:
+            username = fyers_service.get_username(access_token)
+        except Exception as e:
+            messages.error(request, f"Failed to fetch username: {str(e)}")
+            username = None
+        
+        fyers_credentials.username = username
+        fyers_credentials.save()
+        
+        messages.success(request, "Fyers authentication successful!")
+        return render(request, 'fyers/callback_success.html')  # Render success template
+    
+    else:
+        messages.error(request, "Invalid request method.")
+        return redirect('fyers_manual_redirect_input')
+
+# Existing fyers_authentication view updated to include username
+@login_required
+def fyers_authentication(request):
+    """
+    Renders the Fyers main page and displays the username if available.
+    """
+    try:
+        fyers_credentials = FyersCredentials.objects.get(user=request.user, broker__name='Fyers')
+    except FyersCredentials.DoesNotExist:
+        fyers_credentials = None
+
+    username = None
+    if fyers_credentials and fyers_credentials.access_token and fyers_credentials.token_expiry:
+        if fyers_credentials.token_expiry > timezone.now():
+            # Token is still valid
+            fyers_service = FyersService(fyers_credentials)
+            try:
+                username = fyers_service.get_username(fyers_credentials.access_token)
+            except Exception as e:
+                messages.error(request, f"Failed to fetch username: {str(e)}")
+        else:
+            # Token expired
+            messages.info(request, "Your Fyers access token has expired. Please generate a new auth code.")
+    else:
+        if fyers_credentials:
+            messages.info(request, "Please generate your Fyers auth code.")
+        else:
+            messages.info(request, "Please set up your Fyers credentials and generate an auth code.")
+    
+    context = {
+        'username': username
+    }
+    return render(request,'fyers/fyers_main.html', context)
+
+# Existing generate_fyers_auth_code view remains unchanged
+@login_required
+def generate_fyers_auth_code(request):
+    """
+    Redirects the user to the Fyers authentication URL.
+    """
+    try:
+        # Fetch the user's FyersCredentials
+        fyers_credentials = FyersCredentials.objects.get(user=request.user, broker__name='Fyers')
+    except FyersCredentials.DoesNotExist:
+        messages.error(request, "Fyers credentials not found. Please set up your Fyers credentials first.")
+        return redirect('manage_fyers_credentials')  # Redirect to credentials management page
+    
+    # Initialize the FyersService with the user's credentials
+    fyers_service = FyersService(fyers_credentials)
+    
+    # Generate the authentication URL
+    auth_url = fyers_service.get_authentication_url()
+    
+    # Redirect the user to the Fyers authentication URL in a new window
+    return redirect(auth_url)
+
+# Existing fyers_callback view remains unchanged for production use
+@login_required
+def fyers_callback(request):
+    """
+    Handles the callback from Fyers after user authentication.
+    """
+    auth_code = request.GET.get('auth_code')
+    state = request.GET.get('state')
+
+    if not auth_code:
+        messages.error(request, "Authorization code not found.")
+        return redirect('fyers_connect')
+    
+    try:
+        fyers_credentials = FyersCredentials.objects.get(user=request.user, broker__name='Fyers')
+    except FyersCredentials.DoesNotExist:
+        messages.error(request, "Fyers credentials not found. Please set up your Fyers credentials first.")
+        return redirect('manage_fyers_credentials')
+
+    fyers_service = FyersService(fyers_credentials)
+    try:
+        access_token = fyers_service.generate_access_token(auth_code)
+    except Exception as e:
+        messages.error(request, f"Failed to generate access token: {str(e)}")
+        return redirect('fyers_connect')
+
+    # Save access token and set token_expiry to current time + 1 day
+    fyers_credentials.access_token = access_token
+    fyers_credentials.token_expiry = timezone.now() + timedelta(days=1)
+    
+    # Get username
+    try:
+        username = fyers_service.get_username(access_token)
+    except Exception as e:
+        messages.error(request, f"Failed to fetch username: {str(e)}")
+        username = None
+    
+    fyers_credentials.username = username
+    fyers_credentials.save()
+
+    messages.success(request, "Fyers authentication successful!")
+    return render(request, 'fyers/callback_success.html')
 
 
 
 
-def banknifty(request):
-    return render(request,'dashboard/banknifty.html')
+
+
+
+
+
+
+
+
 
 def finnifty(request):
     return render(request,'dashboard/finnifty.html')

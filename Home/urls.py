@@ -18,7 +18,7 @@ urlpatterns = [
     path('watchlist/', views.watchlist, name='watchlist'),
     path('api/get_stocks_by_category/', views.get_stocks_by_category, name='get_stocks_by_category'),
     path('api/get_available_categories/', views.get_available_categories, name='get_available_categories'),
-    path('banknifty/', views.banknifty, name='banknifty'),
+    path('fyers_connect/', views.fyers_authentication, name='fyers_connect'),
     path('finnifty/', views.finnifty, name='finnifty'),
     path('midcapnifty/', views.midcapnifty, name='midcapnifty'),
     path('contactus/', views.contactus , name='contactus'),
@@ -32,5 +32,17 @@ urlpatterns = [
     # Fyers Credentials URLs
     path('profile/fyers_credentials/', views.manage_fyers_credentials, name='manage_fyers_credentials'),
     path('profile/fyers_credentials/delete/', views.delete_fyers_credentials, name='delete_fyers_credentials'),
-    
+
+    # URL for generating Fyers Auth Code
+    path('fyers/generate_auth_code/', views.generate_fyers_auth_code, name='generate_fyers_auth_code'),
+
+    # Callback URL for Fyers Authentication
+    path('fyers/callback/', views.fyers_callback, name='fyers_callback'),
+
+    # Manual Redirect URL Input
+    path('fyers/manual_redirect_input/', views.fyers_manual_redirect_input, name='fyers_manual_redirect_input'),
+    path('fyers/manual_callback/', views.fyers_manual_callback, name='fyers_manual_callback'),
 ]
+    
+    
+

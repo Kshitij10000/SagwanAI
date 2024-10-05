@@ -1,0 +1,46 @@
+<!-- templates/fyers/fyers_main.html -->
+
+{% extends "dashboard/base.html" %}
+
+{% block title %}
+Fyers Connect
+{% endblock title %}
+
+{% block content %}
+<div class="container mt-5">
+    <!-- Display Username on Top Right -->
+    <div class="d-flex justify-content-end mb-3">
+        {% if username %}
+            <span class="badge bg-success">Welcome, {{ username }}</span>
+        {% else %}
+            <span class="badge bg-secondary">Not Authenticated</span>
+        {% endif %}
+    </div>
+
+    <!-- Fyers Actions Dropdown -->
+    <div class="dropdown">
+        <button class="btn btn-primary dropdown-toggle" type="button" id="fyersDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Fyers Actions
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="fyersDropdown">
+            {% if user.is_authenticated and user.fyers_credentials.exists %}
+                <li>
+                    <a class="dropdown-item" href="{% url 'generate_fyers_auth_code' %}" target="_blank">
+                        Generate Fyers Auth Code
+                    </a>
+                </li>
+                <li>
+                    <!-- Manual Redirect Input Option -->
+                    <a class="dropdown-item" href="{% url 'fyers_manual_redirect_input' %}" target="_blank">
+                        Manual Redirect Input
+                    </a>
+                </li>
+            {% else %}
+                <li>
+                    <a class="dropdown-item" href="{% url 'manage_fyers_credentials' %}" tabindex="-1">Set Up Fyers Credentials First</a>
+                </li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,21 @@
+<!-- templates/fyers/callback_success.html -->
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Authentication Successful</title>
+    <script>
+        // If opened as a popup, refresh the main window and close the popup
+        if (window.opener) {
+            window.opener.location.reload();
+            window.close();
+        } else {
+            // If not a popup, redirect to Fyers Connect page
+            window.location.href = "{% url 'fyers_connect' %}";
+        }
+    </script>
+</head>
+<body>
+    <p>Authentication successful. You can close this window.</p>
+</body>
+</html>
