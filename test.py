@@ -7,6 +7,9 @@ import pandas as pd
 CLIENT_ID = "Y25P4GTMHA-100"
 ACCESS_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhcGkuZnllcnMuaW4iLCJpYXQiOjE3MjgzMDM1NzUsImV4cCI6MTcyODM0NzQzNSwibmJmIjoxNzI4MzAzNTc1LCJhdWQiOlsieDowIiwieDoxIiwieDoyIiwiZDoxIiwiZDoyIiwieDoxIiwieDowIl0sInN1YiI6ImFjY2Vzc190b2tlbiIsImF0X2hhc2giOiJnQUFBQUFCbkE5SFhXOGx0d3JYdVRfTFAteTJRTkxWSWpkV1UyTUpoZEp5WW5lV1hJZEI5N1hKb29mSFRON002Q0d4TFBqOEgzNGpDLUVVU1FLNThfc2JYeVRpTm1vOTRuX0t6VnJPRndwUzA0M1MzbUlGM1RoND0iLCJkaXNwbGF5X25hbWUiOiJLU0hJVElKIERJTElQIFNBUlZFIiwib21zIjoiSzEiLCJoc21fa2V5IjoiZjk3YmNjODgyZWM5MWUxNDA5NTU3NWE2NGM5MmQ0M2Y4MDkzYmU0MDE5NmIzMGI2YTlmNDU2MWIiLCJmeV9pZCI6IlhLMDMwNjEiLCJhcHBUeXBlIjoxMDAsInBvYV9mbGFnIjoiTiJ9.-wbLMrxX-PaXalAHapE6MUfR29tYmdtHzP8QgnG5CW0'
 
+
+
+
 def get_tradebook_sync(client_id: str, access_token: str):
     """
     Synchronously retrieves trade book information from the Fyers API.
@@ -15,6 +18,7 @@ def get_tradebook_sync(client_id: str, access_token: str):
         client_id (str): Your Fyers API client ID.
         access_token (str): Your Fyers API access token.
 
+        
     Returns:
         dict: Parsed trade book information.
     """
