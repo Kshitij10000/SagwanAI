@@ -42,6 +42,10 @@ urlpatterns = [
     # Manual Redirect URL Input
     path('fyers/manual_redirect_input/', views.fyers_manual_redirect_input, name='fyers_manual_redirect_input'),
     path('fyers/manual_callback/', views.fyers_manual_callback, name='fyers_manual_callback'),
+
+    # **Fyers Logout URL**
+    path('fyers/logout/', views.fyers_logout, name='fyers_logout'),  
+   
 ]
     
     

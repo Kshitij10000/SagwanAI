@@ -14,7 +14,7 @@ from .yahoo_pull import get_instrument_past_data
 import os
 import json
 from django.conf import settings
-from .forms import  ProfileUpdateForm , FyersCredentialsForm
+from .forms import  ProfileUpdateForm , FyersCredentialsForm 
 from .fyers_service import FyersService 
 from django.utils import timezone
 from datetime import datetime, timedelta 
@@ -385,11 +385,10 @@ def fyers_manual_callback(request):
         messages.error(request, "Invalid request method.")
         return redirect('fyers_manual_redirect_input')
 
-# Existing fyers_authentication view updated to include username
 @login_required
 def fyers_authentication(request):
     """
-    Renders the Fyers main page and displays the username if available.
+    Renders the Fyers main page and displays the username and funds if available.
     """
     try:
         fyers_credentials = FyersCredentials.objects.get(user=request.user, broker__name='Fyers')
@@ -397,6 +396,8 @@ def fyers_authentication(request):
         fyers_credentials = None
 
     username = None
+    funds = None
+
     if fyers_credentials and fyers_credentials.access_token and fyers_credentials.token_expiry:
         if fyers_credentials.token_expiry > timezone.now():
             # Token is still valid
@@ -405,6 +406,11 @@ def fyers_authentication(request):
                 username = fyers_service.get_username(fyers_credentials.access_token)
             except Exception as e:
                 messages.error(request, f"Failed to fetch username: {str(e)}")
+            
+            try:
+                funds = fyers_service.get_funds(fyers_credentials.access_token)
+            except Exception as e:
+                messages.error(request, f"Failed to fetch funds: {str(e)}")
         else:
             # Token expired
             messages.info(request, "Your Fyers access token has expired. Please generate a new auth code.")
@@ -415,9 +421,10 @@ def fyers_authentication(request):
             messages.info(request, "Please set up your Fyers credentials and generate an auth code.")
     
     context = {
-        'username': username
+        'username': username,
+        'funds': funds,
     }
-    return render(request,'fyers/fyers_main.html', context)
+    return render(request, 'fyers/fyers_main.html', context)
 
 # Existing generate_fyers_auth_code view remains unchanged
 @login_required
@@ -484,8 +491,23 @@ def fyers_callback(request):
     messages.success(request, "Fyers authentication successful!")
     return render(request, 'fyers/callback_success.html')
 
-
-
+@login_required
+def fyers_logout(request):
+    """
+    Logs out the user from Fyers by clearing their access tokens and related data.
+    """
+    try:
+        fyers_credentials = FyersCredentials.objects.get(user=request.user, broker__name='Fyers')
+        # Clear sensitive fields
+        fyers_credentials.access_token = None
+        fyers_credentials.token_expiry = None
+        fyers_credentials.username = None
+        fyers_credentials.save()
+        messages.success(request, "Successfully logged out from Fyers.")
+    except FyersCredentials.DoesNotExist:
+        messages.info(request, "No Fyers session found to log out.")
+    
+    return redirect('fyers_connect')
 
 
 

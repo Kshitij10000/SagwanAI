@@ -8,17 +8,19 @@ Fyers Connect
 
 {% block content %}
 <div class="container mt-5">
-    <!-- Display Username on Top Right -->
-    <div class="d-flex justify-content-end mb-3">
+    <!-- Display Username and Logout Button on Top Right -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
         {% if username %}
             <span class="badge bg-success">Welcome, {{ username }}</span>
+            <a href="{% url 'fyers_logout' %}" class="btn btn-danger btn-sm" onclick="return confirm('Are you sure you want to logout from Fyers?');">Fyers Logout</a>
         {% else %}
             <span class="badge bg-secondary">Not Authenticated</span>
+            <a href="{% url 'fyers_logout' %}" class="btn btn-danger btn-sm" disabled>Fyers Logout</a>
         {% endif %}
     </div>
 
     <!-- Fyers Actions Dropdown -->
-    <div class="dropdown">
+    <div class="dropdown mb-3">
         <button class="btn btn-primary dropdown-toggle" type="button" id="fyersDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             Fyers Actions
         </button>
@@ -39,6 +41,24 @@ Fyers Connect
                 <li>
                     <a class="dropdown-item" href="{% url 'manage_fyers_credentials' %}" tabindex="-1">Set Up Fyers Credentials First</a>
                 </li>
+            {% endif %}
+        </ul>
+    </div>
+
+    <!-- Funds Dropdown -->
+    <div class="dropdown">
+        <button class="btn btn-info dropdown-toggle" type="button" id="fundsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+            Funds
+        </button>
+        <ul class="dropdown-menu" aria-labelledby="fundsDropdown">
+            {% if funds %}
+                <li><a class="dropdown-item" href="#">Total Balance: {{ funds.total_balance }}</a></li>
+                <li><a class="dropdown-item" href="#">Available Balance: {{ funds.available_balance }}</a></li>
+                <li><a class="dropdown-item" href="#">Utilized Amount: {{ funds.utilized_amount }}</a></li>
+                <li><a class="dropdown-item" href="#">Clear Balance: {{ funds.clear_balance }}</a></li>
+                <!-- Add more funds details as needed -->
+            {% else %}
+                <li><a class="dropdown-item" href="#">No funds data available.</a></li>
             {% endif %}
         </ul>
     </div>
