@@ -386,9 +386,28 @@ def fyers_manual_callback(request):
         return redirect('fyers_manual_redirect_input')
 
 @login_required
-def fyers_authentication(request):
+def get_trade_book_api(request):
     """
-    Renders the Fyers main page and displays the username and funds if available.
+    API endpoint to return the trade book data.
+    """
+    try:
+        fyers_credentials = FyersCredentials.objects.get(user=request.user, broker__name='Fyers')
+        if fyers_credentials.access_token and fyers_credentials.token_expiry > timezone.now():
+            fyers_service = FyersService(fyers_credentials)
+            trade_book = fyers_service.get_trade_book(fyers_credentials.access_token)
+            if trade_book is not None:
+                return JsonResponse({'trade_book': trade_book})
+            else:
+                return JsonResponse({'error': 'Failed to retrieve trade book data.'}, status=500)
+        else:
+            return JsonResponse({'error': 'Invalid or expired access token.'}, status=401)
+    except FyersCredentials.DoesNotExist:
+        return JsonResponse({'error': 'Fyers credentials not found.'}, status=404)
+
+@login_required
+def fyers_main_with_trade_book(request):
+    """
+    Renders the Fyers main page with the trade book visible by default.
     """
     try:
         fyers_credentials = FyersCredentials.objects.get(user=request.user, broker__name='Fyers')
@@ -397,10 +416,11 @@ def fyers_authentication(request):
 
     username = None
     funds = None
+    trade_book = []
+    positions = []
 
     if fyers_credentials and fyers_credentials.access_token and fyers_credentials.token_expiry:
         if fyers_credentials.token_expiry > timezone.now():
-            # Token is still valid
             fyers_service = FyersService(fyers_credentials)
             try:
                 username = fyers_service.get_username(fyers_credentials.access_token)
@@ -411,8 +431,21 @@ def fyers_authentication(request):
                 funds = fyers_service.get_funds(fyers_credentials.access_token)
             except Exception as e:
                 messages.error(request, f"Failed to fetch funds: {str(e)}")
+            
+            try:
+                trade_book = fyers_service.get_trade_book(fyers_credentials.access_token)
+                if not trade_book:
+                    messages.info(request, "No trade book data available.")
+            except Exception as e:
+                messages.error(request, f"Failed to fetch trade book: {str(e)}")
+            
+            try:
+                positions = fyers_service.get_positions(fyers_credentials.access_token)  # Ensure this method exists
+                if not positions:
+                    messages.info(request, "No positions data available.")
+            except Exception as e:
+                messages.error(request, f"Failed to fetch positions: {str(e)}")
         else:
-            # Token expired
             messages.info(request, "Your Fyers access token has expired. Please generate a new auth code.")
     else:
         if fyers_credentials:
@@ -423,6 +456,8 @@ def fyers_authentication(request):
     context = {
         'username': username,
         'funds': funds,
+        'trade_book': trade_book,
+        'positions': positions,
     }
     return render(request, 'fyers/fyers_main.html', context)
 

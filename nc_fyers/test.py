@@ -5,12 +5,10 @@ import os
 import pandas as pd
 # Replace these with your actual credentials
 CLIENT_ID = "Y25P4GTMHA-100"
-ACCESS_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhcGkuZnllcnMuaW4iLCJpYXQiOjE3MjgzMDM1NzUsImV4cCI6MTcyODM0NzQzNSwibmJmIjoxNzI4MzAzNTc1LCJhdWQiOlsieDowIiwieDoxIiwieDoyIiwiZDoxIiwiZDoyIiwieDoxIiwieDowIl0sInN1YiI6ImFjY2Vzc190b2tlbiIsImF0X2hhc2giOiJnQUFBQUFCbkE5SFhXOGx0d3JYdVRfTFAteTJRTkxWSWpkV1UyTUpoZEp5WW5lV1hJZEI5N1hKb29mSFRON002Q0d4TFBqOEgzNGpDLUVVU1FLNThfc2JYeVRpTm1vOTRuX0t6VnJPRndwUzA0M1MzbUlGM1RoND0iLCJkaXNwbGF5X25hbWUiOiJLU0hJVElKIERJTElQIFNBUlZFIiwib21zIjoiSzEiLCJoc21fa2V5IjoiZjk3YmNjODgyZWM5MWUxNDA5NTU3NWE2NGM5MmQ0M2Y4MDkzYmU0MDE5NmIzMGI2YTlmNDU2MWIiLCJmeV9pZCI6IlhLMDMwNjEiLCJhcHBUeXBlIjoxMDAsInBvYV9mbGFnIjoiTiJ9.-wbLMrxX-PaXalAHapE6MUfR29tYmdtHzP8QgnG5CW0'
+ACCESS_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJhcGkuZnllcnMuaW4iLCJpYXQiOjE3Mjg0MTczODMsImV4cCI6MTcyODQzMzgyMywibmJmIjoxNzI4NDE3MzgzLCJhdWQiOlsieDowIiwieDoxIiwieDoyIiwiZDoxIiwiZDoyIiwieDoxIiwieDowIl0sInN1YiI6ImFjY2Vzc190b2tlbiIsImF0X2hhc2giOiJnQUFBQUFCbkJZNW5BQlhXWUJNX1ZVQXVOZDlPM2xabV9JVDR2Q1RTUF9MelFCam9lVVJaUUpfT09oYkxyT3ZGb2w2X0RfVDFvZjZ3Rnl6TVlOYUhkUkxoUGR4UW5FTzFWQVQ5ejloWEtFS0xsVzRRQjIzTEg0az0iLCJkaXNwbGF5X25hbWUiOiJLU0hJVElKIERJTElQIFNBUlZFIiwib21zIjoiSzEiLCJoc21fa2V5IjoiZjk3YmNjODgyZWM5MWUxNDA5NTU3NWE2NGM5MmQ0M2Y4MDkzYmU0MDE5NmIzMGI2YTlmNDU2MWIiLCJmeV9pZCI6IlhLMDMwNjEiLCJhcHBUeXBlIjoxMDAsInBvYV9mbGFnIjoiTiJ9.Fn8VtRBHlDcu8tk0Oi06F0NM4GGYIKM9DaQxIT3KQHw'
 
 
-
-
-def get_tradebook_sync(client_id: str, access_token: str):
+def get_positionbook_sync(client_id: str, access_token: str):
     """
     Synchronously retrieves trade book information from the Fyers API.
 
@@ -18,72 +16,79 @@ def get_tradebook_sync(client_id: str, access_token: str):
         client_id (str): Your Fyers API client ID.
         access_token (str): Your Fyers API access token.
 
-        
     Returns:
-        dict: Parsed trade book information.
+        pd.DataFrame: DataFrame containing trade book information.
     """
     try:
-        # Initialize the FyersModel instance with async mode disabled (synchronous)
         fyers = fyersModel.FyersModel(client_id=client_id, token=access_token, is_async=False, log_path="")
+    
+        # Make a synchronous request to get the positions information
+        response = fyers.positions()
 
-        # Make a synchronous request to get the trade book information
-        response = fyers.tradebook()
+    
 
-
-        # Check if the response indicates success
         if response.get("s") == "ok":
-            trade_book = response.get("tradeBook", [])
-            trades = []
+            positions = response.get("netPositions", [])
+            position_list = []
 
-            # Iterate over each trade detail in 'tradeBook'
-            for trade in trade_book:
-                # Extract desired fields
-                trade_info = {
-                    'Client ID': trade.get('clientId', 'N/A'),
-                    'Exchange': trade.get('exchange', 'N/A'),
-                    'FY Token': trade.get('fyToken', 'N/A'),
-                    'Order Number': trade.get('orderNumber', 'N/A'),
-                    'Exchange Order No': trade.get('exchangeOrderNo', 'N/A'),
-                    'Trade Number': trade.get('tradeNumber', 'N/A'),
-                    'Trade Price': trade.get('tradePrice', 'N/A'),
-                    'Segment': trade.get('segment', 'N/A'),
-                    'Product Type': trade.get('productType', 'N/A'),
-                    'Traded Quantity': trade.get('tradedQty', 'N/A'),
-                    'Symbol': trade.get('symbol', 'N/A'),
-                    'Row': trade.get('row', 'N/A'),
-                    'Order DateTime': trade.get('orderDateTime', 'N/A'),
-                    'Trade Value': trade.get('tradeValue', 'N/A'),
-                    'Side': 'Buy' if trade.get('side') == 1 else 'Sell',
-                    'Order Type': trade.get('orderType', 'N/A'),
-                    'Order Tag': trade.get('orderTag', 'N/A')
+            for position in positions:
+                # Interpret the 'side' field
+                side_value = position.get('side')
+                if side_value == 1:
+                    side = 'Long'
+                elif side_value == -1:
+                    side = 'Short'
+                else:
+                    side = 'Neutral'  # Assuming 0 represents Neutral
+
+                position_info = {
+                    'symbol': position.get('symbol', 'N/A'),
+                    'buy_quantity': position.get('buyQty', 'N/A'),
+                    'buy_average_price': position.get('buyAvg', 'N/A'),
+                    'buy_value': position.get('buyVal', 'N/A'),
+                    'sell_quantity': position.get('sellQty', 'N/A'),
+                    'sell_average_price': position.get('sellAvg', 'N/A'),
+                    'sell_value': position.get('sellVal', 'N/A'),
+                    'net_average_price': position.get('netAvg', 'N/A'),
+                    'net_quantity': position.get('netQty', 'N/A'),
+                    'side': side,
+                    'product_type': position.get('productType', 'N/A'),
+                    'realized_profit': position.get('realized_profit', 'N/A'),
+                    'unrealized_profit': position.get('unrealized_profit', 'N/A'),
+                    'profit_loss': position.get('pl', 'N/A'),
+                    'last_traded_price': position.get('ltp', 'N/A'),
+                    'exchange': position.get('exchange', 'N/A'),
+                    'segment': position.get('segment', 'N/A'),
+                    'day_buy_qty': position.get('dayBuyQty', 'N/A'),
+                    'day_sell_qty': position.get('daySellQty', 'N/A'),
+                    'cf_buy_qty': position.get('cfBuyQty', 'N/A'),
+                    'cf_sell_qty': position.get('cfSellQty', 'N/A'),
+                    'qty_multiplier': position.get('qtyMulti_com', 'N/A'),
+                    'fyToken': position.get('fyToken', 'N/A'),
+                    'rbi_ref_rate': position.get('rbiRefRate', 'N/A'),
+                    'cross_currency': position.get('crossCurrency', 'N/A'),
+                    'slNo': position.get('slNo', 'N/A')
                 }
-                trades.append(trade_info)
+                
+                # Append inside the loop
+                position_list.append(position_info)
 
             # Convert the list of trades to a DataFrame for better presentation
-            df_trades = pd.DataFrame(trades)
+            df_trades = pd.DataFrame(position_list)
 
             print("\nTrade Book Information:")
             print(df_trades)
 
-            # Optionally, export the trade book to an Excel file
-            export_to_excel = input("\nWould you like to export the trade book to Excel? (y/n): ").strip().lower()
-            if export_to_excel == 'y':
-                excel_filename = "trade_book.xlsx"
-                df_trades.to_excel(excel_filename, index=False, engine='openpyxl')
-                print(f"Trade book successfully exported to {excel_filename}")
-            else:
-                print("Export to Excel skipped.")
-
-            return df_trades
+        
 
         else:
             print("\nFailed to retrieve trade book data.")
             print("Response:", response)
-            return {}
+            return pd.DataFrame()
 
     except Exception as e:
         print(f"\nAn error occurred while fetching trade book data: {e}")
-        return {}
+        return pd.DataFrame()
 
 def main():
     """
@@ -95,7 +100,7 @@ def main():
         sys.exit(1)
 
     # Fetch and process trade book data
-    get_tradebook_sync(CLIENT_ID, ACCESS_TOKEN)
+    get_positionbook_sync(CLIENT_ID, ACCESS_TOKEN)
 
 if __name__ == "__main__":
     main()

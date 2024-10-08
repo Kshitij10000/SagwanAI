@@ -7,6 +7,13 @@ Fyers Connect
 {% endblock title %}
 
 {% block content %}
+<style>
+    /* Make table text smaller */
+    .table th, .table td {
+        font-size: 0.9rem;
+        padding: 0.4rem;
+    }
+</style>
 <div class="container mt-5">
     <!-- Display Username and Logout Button on Top Right -->
     <div class="d-flex justify-content-between align-items-center mb-3">
@@ -25,7 +32,7 @@ Fyers Connect
             Fyers Actions
         </button>
         <ul class="dropdown-menu" aria-labelledby="fyersDropdown">
-            {% if user.is_authenticated and user.fyers_credentials.exists %}
+            {% if user.is_authenticated and user.fyers_credentials.all %}
                 <li>
                     <a class="dropdown-item" href="{% url 'generate_fyers_auth_code' %}" target="_blank">
                         Generate Fyers Auth Code
@@ -46,7 +53,7 @@ Fyers Connect
     </div>
 
     <!-- Funds Dropdown -->
-    <div class="dropdown">
+    <div class="dropdown mb-3">
         <button class="btn btn-info dropdown-toggle" type="button" id="fundsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
             Funds
         </button>
@@ -62,5 +69,140 @@ Fyers Connect
             {% endif %}
         </ul>
     </div>
+
+    <!-- Trade Book Section -->
+    <div class="mb-5">
+        <h3>Trade Book</h3>
+        {% if trade_book %}
+            <!-- Make the table responsive -->
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Client ID</th>
+                            <th>Exchange</th>
+                            <th>FY Token</th>
+                            <th>Order Number</th>
+                            <th>Exchange Order No</th>
+                            <th>Trade Number</th>
+                            <th>Trade Price</th>
+                            <th>Segment</th>
+                            <th>Product Type</th>
+                            <th>Traded Quantity</th>
+                            <th>Symbol</th>
+                            <th>Row</th>
+                            <th>Order DateTime</th>
+                            <th>Trade Value</th>
+                            <th>Side</th>
+                            <th>Order Type</th>
+                            <th>Order Tag</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for trade in trade_book %}
+                            <tr>
+                                <td>{{ trade.client_id }}</td>
+                                <td>{{ trade.exchange }}</td>
+                                <td>{{ trade.fy_token }}</td>
+                                <td>{{ trade.order_number }}</td>
+                                <td>{{ trade.exchange_order_no }}</td>
+                                <td>{{ trade.trade_number }}</td>
+                                <td>{{ trade.trade_price }}</td>
+                                <td>{{ trade.segment }}</td>
+                                <td>{{ trade.product_type }}</td>
+                                <td>{{ trade.traded_quantity }}</td>
+                                <td>{{ trade.symbol }}</td>
+                                <td>{{ trade.row }}</td>
+                                <td>{{ trade.order_datetime }}</td>
+                                <td>{{ trade.trade_value }}</td>
+                                <td>{{ trade.side }}</td>
+                                <td>{{ trade.order_type }}</td>
+                                <td>{{ trade.order_tag }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No trades available.</p>
+        {% endif %}
+    </div>
+
+    <!-- Positions Section -->
+    <div class="mb-5">
+        <h3>Positions</h3>
+        {% if positions %}
+            <!-- Make the table responsive -->
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Symbol</th>
+                            <th>Buy Quantity</th>
+                            <th>Buy Avg Price</th>
+                            <th>Buy Value</th>
+                            <th>Sell Quantity</th>
+                            <th>Sell Avg Price</th>
+                            <th>Sell Value</th>
+                            <th>Net Avg Price</th>
+                            <th>Net Quantity</th>
+                            <th>Side</th>
+                            <th>Product Type</th>
+                            <th>Realized Profit</th>
+                            <th>Unrealized Profit</th>
+                            <th>Profit/Loss</th>
+                            <th>Last Traded Price</th>
+                            <th>Exchange</th>
+                            <th>Segment</th>
+                            <th>Day Buy Qty</th>
+                            <th>Day Sell Qty</th>
+                            <th>CF Buy Qty</th>
+                            <th>CF Sell Qty</th>
+                            <th>Qty Multiplier</th>
+                            <th>FY Token</th>
+                            <th>RBI Ref Rate</th>
+                            <th>Cross Currency</th>
+                            <th>Sl No</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for position in positions %}
+                            <tr>
+                                <td>{{ position.symbol }}</td>
+                                <td>{{ position.buy_quantity }}</td>
+                                <td>{{ position.buy_average_price }}</td>
+                                <td>{{ position.buy_value }}</td>
+                                <td>{{ position.sell_quantity }}</td>
+                                <td>{{ position.sell_average_price }}</td>
+                                <td>{{ position.sell_value }}</td>
+                                <td>{{ position.net_average_price }}</td>
+                                <td>{{ position.net_quantity }}</td>
+                                <td>{{ position.side }}</td>
+                                <td>{{ position.product_type }}</td>
+                                <td>{{ position.realized_profit }}</td>
+                                <td>{{ position.unrealized_profit }}</td>
+                                <td>{{ position.profit_loss }}</td>
+                                <td>{{ position.last_traded_price }}</td>
+                                <td>{{ position.exchange }}</td>
+                                <td>{{ position.segment }}</td>
+                                <td>{{ position.day_buy_qty }}</td>
+                                <td>{{ position.day_sell_qty }}</td>
+                                <td>{{ position.cf_buy_qty }}</td>
+                                <td>{{ position.cf_sell_qty }}</td>
+                                <td>{{ position.qty_multiplier }}</td>
+                                <td>{{ position.fyToken }}</td>
+                                <td>{{ position.rbi_ref_rate }}</td>
+                                <td>{{ position.cross_currency }}</td>
+                                <td>{{ position.slNo }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <p>No positions available.</p>
+        {% endif %}
+    </div>
 </div>
+
 {% endblock content %}

@@ -3,6 +3,11 @@ from urllib.parse import urlencode
 from fyers_apiv3 import fyersModel 
 from django.utils import timezone
 from asgiref.sync import async_to_sync
+import logging 
+
+# Configure logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
 
 class FyersService:
     def __init__(self, credentials):
@@ -115,3 +120,120 @@ class FyersService:
         Synchronously retrieves the funds information by running the async function.
         """
         return async_to_sync(self.get_funds_async)(access_token)
+    
+    def get_trade_book(self, access_token):
+        """
+        Retrieves the trade book information from Fyers using the access token.
+        """
+        try:
+            # Initialize the FyersModel instance with async mode disabled (synchronous)
+            fyers = fyersModel.FyersModel(client_id=self.client_id, token=access_token, is_async=False, log_path="")
+    
+            # Make a synchronous request to get the trade book information
+            response = fyers.tradebook()
+    
+            # Check if the response indicates success
+            if response.get("s") == "ok":
+                trade_book = response.get("tradeBook", [])
+                trades = []
+    
+                # Iterate over each trade detail in 'tradeBook'
+                for trade in trade_book:
+                    # Extract desired fields with snake_case keys
+                    trade_info = {
+                        'client_id': trade.get('clientId', 'N/A'),
+                        'exchange': trade.get('exchange', 'N/A'),
+                        'fy_token': trade.get('fyToken', 'N/A'),
+                        'order_number': trade.get('orderNumber', 'N/A'),
+                        'exchange_order_no': trade.get('exchangeOrderNo', 'N/A'),
+                        'trade_number': trade.get('tradeNumber', 'N/A'),
+                        'trade_price': trade.get('tradePrice', 'N/A'),
+                        'segment': trade.get('segment', 'N/A'),
+                        'product_type': trade.get('productType', 'N/A'),
+                        'traded_quantity': trade.get('tradedQty', 'N/A'),
+                        'symbol': trade.get('symbol', 'N/A'),
+                        'row': trade.get('row', 'N/A'),
+                        'order_datetime': trade.get('orderDateTime', 'N/A'),
+                        'trade_value': trade.get('tradeValue', 'N/A'),
+                        'side': 'Buy' if trade.get('side') == 1 else 'Sell',
+                        'order_type': trade.get('orderType', 'N/A'),
+                        'order_tag': trade.get('orderTag', 'N/A')
+                    }
+                    trades.append(trade_info)
+    
+                return trades  # Return the list of trades as dictionaries
+    
+            else:
+                return None  # Indicate failure to retrieve trade book
+    
+        except Exception as e:
+            return None  # Indicate an error occurred 
+        
+    def get_positions(self, access_token):
+        """
+        Retrieves the positions information from Fyers using the access token.
+        """
+        try:
+            fyers = fyersModel.FyersModel(client_id=self.client_id, token=access_token, is_async=False, log_path="")
+
+            # Make a synchronous request to get the positions information
+            response = fyers.positions()
+
+            # Log the raw API response for debugging
+            logger.debug(f"Positions API Response: {response}")
+
+            if response.get("s") == "ok":
+                positions = response.get("netPositions", [])  # Changed from 'positions' to 'netPositions' as per working script
+                position_list = []
+
+                for position in positions:
+                    # Interpret the 'side' field
+                    side_value = position.get('side')
+                    if side_value == 1:
+                        side = 'Long'
+                    elif side_value == -1:
+                        side = 'Short'
+                    else:
+                        side = 'Neutral'  # Assuming 0 represents Neutral
+
+                    position_info = {
+                        'symbol': position.get('symbol', 'N/A'),
+                        'buy_quantity': position.get('buyQty', 'N/A'),
+                        'buy_average_price': position.get('buyAvg', 'N/A'),
+                        'buy_value': position.get('buyVal', 'N/A'),
+                        'sell_quantity': position.get('sellQty', 'N/A'),
+                        'sell_average_price': position.get('sellAvg', 'N/A'),
+                        'sell_value': position.get('sellVal', 'N/A'),
+                        'net_average_price': position.get('netAvg', 'N/A'),
+                        'net_quantity': position.get('netQty', 'N/A'),
+                        'side': side,
+                        'product_type': position.get('productType', 'N/A'),
+                        'realized_profit': position.get('realized_profit', 'N/A'),
+                        'unrealized_profit': position.get('unrealized_profit', 'N/A'),
+                        'profit_loss': position.get('pl', 'N/A'),
+                        'last_traded_price': position.get('ltp', 'N/A'),
+                        'exchange': position.get('exchange', 'N/A'),
+                        'segment': position.get('segment', 'N/A'),
+                        'day_buy_qty': position.get('dayBuyQty', 'N/A'),
+                        'day_sell_qty': position.get('daySellQty', 'N/A'),
+                        'cf_buy_qty': position.get('cfBuyQty', 'N/A'),
+                        'cf_sell_qty': position.get('cfSellQty', 'N/A'),
+                        'qty_multiplier': position.get('qtyMulti_com', 'N/A'),
+                        'fyToken': position.get('fyToken', 'N/A'),
+                        'rbi_ref_rate': position.get('rbiRefRate', 'N/A'),
+                        'cross_currency': position.get('crossCurrency', 'N/A'),
+                        'slNo': position.get('slNo', 'N/A')
+                    }
+
+                    position_list.append(position_info)
+
+                logger.debug(f"Processed Positions: {position_list}")
+                return position_list
+
+            else:
+                logger.error(f"Failed to retrieve positions data. Response: {response}")
+                return None
+
+        except Exception as e:
+            logger.exception("An error occurred while fetching positions.")
+            return None

@@ -18,7 +18,7 @@ urlpatterns = [
     path('watchlist/', views.watchlist, name='watchlist'),
     path('api/get_stocks_by_category/', views.get_stocks_by_category, name='get_stocks_by_category'),
     path('api/get_available_categories/', views.get_available_categories, name='get_available_categories'),
-    path('fyers_connect/', views.fyers_authentication, name='fyers_connect'),
+    path('fyers_connect/', views.fyers_main_with_trade_book, name='fyers_connect'), 
     path('finnifty/', views.finnifty, name='finnifty'),
     path('midcapnifty/', views.midcapnifty, name='midcapnifty'),
     path('contactus/', views.contactus , name='contactus'),
@@ -45,7 +45,9 @@ urlpatterns = [
 
     # **Fyers Logout URL**
     path('fyers/logout/', views.fyers_logout, name='fyers_logout'),  
-   
+    
+    # New Trade Book API URL
+    path('api/get_trade_book/', views.get_trade_book_api, name='get_trade_book_api'),
 ]
     
     
