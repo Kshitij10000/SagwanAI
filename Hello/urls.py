@@ -19,9 +19,9 @@ from django.urls import path , include
 from django.conf import settings
 from django.conf.urls.static import static
 
-admin.site.site_header = "Nirmaan.Finance"
-admin.site.site_title = "Nirmaan.Finance Admin Portal"
-admin.site.index_title = "Welcome to Nirmaan.Finance"
+admin.site.site_header = "TradeSynth.AI(BETA)"
+admin.site.site_title = "TradeSynth.AI(BETA) Admin Portal"
+admin.site.index_title = "Welcome to TradeSynth.AI(BETA)"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
