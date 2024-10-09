@@ -1,9 +1,8 @@
 # nirmaan_policy/forms.py
 
 from django import forms
-from django.contrib.auth.models import User
-from django.contrib.auth.forms import UserCreationForm
-from .models import Profile, FyersCredentials
+from .models import Profile, FyersCredentials 
+from PaperTrade.models import Order
 
 
 
