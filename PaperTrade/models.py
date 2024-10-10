@@ -1,6 +1,7 @@
+# PaperTrade/models.py
 from django.db import models
 from django.contrib.auth.models import User
-from Home.models import Ticker  
+from Home.models import Ticker  # Ensure this import matches your project structure
 
 class Fund(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='funds')
@@ -8,8 +9,6 @@ class Fund(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Fund"
-
-
 
 class Order(models.Model):
     ORDER_TYPES = (
@@ -34,7 +33,6 @@ class Order(models.Model):
     def __str__(self):
         return f"{self.order_type} {self.quantity} {self.ticker.symbol} by {self.user.username}"
 
-
 class Position(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='positions')
     ticker = models.ForeignKey(Ticker, on_delete=models.CASCADE)
@@ -54,4 +52,3 @@ class Trade(models.Model):
 
     def __str__(self):
         return f"Trade for {self.order.ticker.symbol} by {self.order.user.username}"
-

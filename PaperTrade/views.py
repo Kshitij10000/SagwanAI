@@ -1,14 +1,14 @@
-from django.shortcuts import render
+# PaperTrade/views.py
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import Fund, Order, Position, Trade, Ticker
 from .forms import OrderForm
 from django.http import JsonResponse
-from Home.yahoo_pull import get_instrument_past_data  # Adjust import based on your project structure
+from Home.yahoo_pull import get_instrument_past_data  # Ensure this function exists and works correctly
 from django.utils import timezone
-
-from django.contrib.auth.decorators import login_required
+from decimal import Decimal
+import json
 
 @login_required
 def synth_paper_broker(request):
@@ -30,33 +30,36 @@ def synth_paper_broker(request):
             order = form.save(commit=False)
             order.user = user
 
-            # Fetch current stock price using yfinance
+            # Fetch current stock price using yfinance or a similar service
             ticker_symbol = order.ticker.symbol
-            stock_data = get_instrument_past_data(ticker_symbol, period='1d')
+            stock_data = get_instrument_past_data(ticker_symbol, period='1d')  # Ensure this returns correct data
             if 'historical_data' in stock_data and stock_data['historical_data']:
-                current_price = stock_data['historical_data'][-1]['Close']
+                # Assuming 'Close' is the latest price
+                current_price = Decimal(str(stock_data['historical_data'][-1]['Close']))
                 order.price = current_price
                 order.status = 'EXECUTED'
                 order.save()
 
-                # Update Fund
+                # Update Fund and Position based on order type
                 if order.order_type == 'BUY':
-                    total_cost = order.quantity * order.price
+                    total_cost = Decimal(order.quantity) * order.price
                     if fund.balance >= total_cost:
                         fund.balance -= total_cost
                         fund.save()
 
-                        # Update Position
+                        # Update or create Position
                         position, pos_created = Position.objects.get_or_create(user=user, ticker=order.ticker)
-                        total_quantity = position.quantity + order.quantity
+                        total_quantity = Decimal(position.quantity) + Decimal(order.quantity)
                         if total_quantity:
-                            position.average_price = ((position.average_price * position.quantity) + (order.price * order.quantity)) / total_quantity
+                            position.average_price = ((position.average_price * Decimal(position.quantity)) + (order.price * Decimal(order.quantity))) / total_quantity
                         position.quantity = total_quantity
                         position.current_price = order.price
                         position.save()
-                        messages.success(request, f"Bought {order.quantity} shares of {ticker_symbol} at {order.price}")
+                        messages.success(request, f"Bought {order.quantity} shares of {ticker_symbol} at ${order.price}")
                     else:
                         messages.error(request, "Insufficient funds to execute the buy order.")
+                        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                            return JsonResponse({'status': 'error', 'message': "Insufficient funds to execute the buy order."})
                         return redirect('synth_paper_broker')
 
                 elif order.order_type == 'SELL':
@@ -64,24 +67,28 @@ def synth_paper_broker(request):
                     try:
                         position = Position.objects.get(user=user, ticker=order.ticker)
                         if position.quantity >= order.quantity:
-                            position.quantity -= order.quantity
+                            position.quantity -= Decimal(order.quantity)
                             position.current_price = order.price
                             # Calculate P&L
-                            pnl = (order.price - position.average_price) * order.quantity
+                            pnl = (order.price - position.average_price) * Decimal(order.quantity)
                             position.pnl += pnl
                             position.save()
 
                             # Update Fund
-                            total_revenue = order.quantity * order.price
+                            total_revenue = Decimal(order.quantity) * order.price
                             fund.balance += total_revenue
                             fund.save()
 
-                            messages.success(request, f"Sold {order.quantity} shares of {ticker_symbol} at {order.price}")
+                            messages.success(request, f"Sold {order.quantity} shares of {ticker_symbol} at ${order.price}")
                         else:
                             messages.error(request, "Insufficient shares to execute the sell order.")
+                            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                                return JsonResponse({'status': 'error', 'message': "Insufficient shares to execute the sell order."})
                             return redirect('synth_paper_broker')
                     except Position.DoesNotExist:
                         messages.error(request, "You don't own any shares of this stock.")
+                        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                            return JsonResponse({'status': 'error', 'message': "You don't own any shares of this stock."})
                         return redirect('synth_paper_broker')
 
                 # Log the trade
@@ -92,8 +99,33 @@ def synth_paper_broker(request):
                     executed_at=timezone.now()
                 )
 
+                # For AJAX requests, return a success response
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'success', 'message': 'Order placed successfully.'})
+
+                # Redirect to prevent duplicate submissions
+                return redirect('synth_paper_broker')
+
             else:
                 messages.error(request, "Failed to fetch current stock price.")
+                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                    return JsonResponse({'status': 'error', 'message': "Failed to fetch current stock price."})
+                return redirect('synth_paper_broker')
+        else:
+            # Form is invalid
+            # Collect form errors and send as response
+            errors = form.errors.get_json_data()
+            # Format errors as a list of messages
+            error_messages = []
+            for field, field_errors in errors.items():
+                for error in field_errors:
+                    error_messages.append(f"{field.capitalize()}: {error['message']}")
+            # Return errors as a single string
+            error_string = "\n".join(error_messages)
+            messages.error(request, "Invalid form submission.")
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'message': "Invalid form submission.", 'errors': error_string})
+            return redirect('synth_paper_broker')
     else:
         form = OrderForm()
 
@@ -115,11 +147,11 @@ def get_live_stock_prices(request):
         ticker_symbol = position.ticker.symbol
         stock_data = get_instrument_past_data(ticker_symbol, period='1d')
         if 'historical_data' in stock_data and stock_data['historical_data']:
-            current_price = stock_data['historical_data'][-1]['Close']
+            current_price = Decimal(str(stock_data['historical_data'][-1]['Close']))
             live_prices[ticker_symbol] = float(current_price)
             # Update position's current price and P&L
             position.current_price = current_price
-            position.pnl = (current_price - position.average_price) * position.quantity
+            position.pnl = (current_price - position.average_price) * Decimal(position.quantity)
             position.save()
         else:
             live_prices[ticker_symbol] = None

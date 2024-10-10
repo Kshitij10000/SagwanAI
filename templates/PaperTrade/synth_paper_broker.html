@@ -1,21 +1,435 @@
-{% extends "dashboard/base.html"%}
+<!-- PaperTrade/templates/PaperTrade/synth_paper_broker.html -->
+{% extends 'dashboard/base.html' %}
 
-{% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Synth Paper Broker</title>
-    <link rel="stylesheet" href="{% static 'PaperTrade/css/styles.css' %}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <style>
-        /* You can also include inline styles or additional CSS here */
-    </style>
+{% block title %}Synth Paper Broker{% endblock title %}
 
-</head>
-<body>
-    <!-- Your HTML content -->
-    <script src="{% static 'PaperTrade/js/scripts.js' %}"></script>
-</body>
-</html>
+{% block extra_css %}
+<!-- Additional CSS if needed -->
+<style>
+    .section {
+        margin-top: 20px;
+    }
+    .chart-container {
+        position: relative;
+        height: 200px;
+        width: 100%;
+    }
+    .modal-header {
+        background-color: #f8f9fa;
+    }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mt-4">Synth Paper Broker</h1>
+
+    <!-- Display Messages -->
+    {% if messages %}
+        <div class="mt-3">
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+
+    <!-- Funds Section -->
+    <div class="section">
+        <h3>Funds: ${{ fund.balance }}</h3>
+    </div>
+
+    <!-- Watchlist and Buy/Sell Section -->
+    <div class="section row">
+        <div class="col-md-6">
+            <h3>Watchlist</h3>
+            <table class="table table-bordered" id="watchlist-table">
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Current Price</th>
+                        <th>Change</th>
+                        <th>Chart</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for position in positions %}
+                    <tr id="ticker-{{ position.ticker.symbol }}">
+                        <td>{{ position.ticker.symbol }}</td>
+                        <td class="current-price">{{ position.current_price }}</td>
+                        <td class="change">0.00</td>
+                        <td>
+                            <canvas id="chart-{{ position.ticker.symbol }}" width="100" height="50"></canvas>
+                        </td>
+                        <td>
+                            <button class="btn btn-primary btn-sm buy-btn" 
+                                    data-ticker-id="{{ position.ticker.id }}" 
+                                    data-ticker-symbol="{{ position.ticker.symbol }}" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#buyModal">Buy</button>
+                            <button class="btn btn-danger btn-sm sell-btn" 
+                                    data-ticker-id="{{ position.ticker.id }}" 
+                                    data-ticker-symbol="{{ position.ticker.symbol }}" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#sellModal">Sell</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Buy/Sell Form Removed to prevent duplicate submissions -->
+        <!--
+        <div class="col-md-6">
+            <h3>Place Order</h3>
+            <form method="POST">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-success">Submit Order</button>
+            </form>
+        </div>
+        -->
+    </div>
+
+    <!-- Order Book Section -->
+    <div class="section">
+        <h3>Order Book</h3>
+        <table class="table table-striped" id="order-book">
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Type</th>
+                    <th>Quantity</th>
+                    <th>Price</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.ticker.symbol }}</td>
+                    <td>{{ order.order_type }}</td>
+                    <td>{{ order.quantity }}</td>
+                    <td>{{ order.price }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>{{ order.created_at }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Position Book Section -->
+    <div class="section">
+        <h3>Position Book</h3>
+        <table class="table table-striped" id="position-book">
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Quantity</th>
+                    <th>Avg Price</th>
+                    <th>Current Price</th>
+                    <th>P&L</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for position in positions %}
+                <tr>
+                    <td>{{ position.ticker.symbol }}</td>
+                    <td>{{ position.quantity }}</td>
+                    <td>{{ position.average_price }}</td>
+                    <td>{{ position.current_price }}</td>
+                    <td>{{ position.pnl }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Buy Modal -->
+<div class="modal fade" id="buyModal" tabindex="-1" aria-labelledby="buyModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="buyForm" method="POST">
+      {% csrf_token %}
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="buyModalLabel">Buy Stock</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Hidden fields for Ticker ID and Order Type -->
+          <input type="hidden" id="buy-ticker-id" name="ticker">
+          <input type="hidden" name="order_type" value="BUY">
+          <div class="mb-3">
+            <label for="buy-quantity" class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="buy-quantity" name="quantity" min="1" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-primary">Buy</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Sell Modal -->
+<div class="modal fade" id="sellModal" tabindex="-1" aria-labelledby="sellModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form id="sellForm" method="POST">
+      {% csrf_token %}
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="sellModalLabel">Sell Stock</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Hidden fields for Ticker ID and Order Type -->
+          <input type="hidden" id="sell-ticker-id" name="ticker">
+          <input type="hidden" name="order_type" value="SELL">
+          <div class="mb-3">
+            <label for="sell-quantity" class="form-label">Quantity</label>
+            <input type="number" class="form-control" id="sell-quantity" name="quantity" min="1" required>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-danger">Sell</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+{% endblock content %}
+
+{% block extra_js %}
+<!-- Scripts for Live Updates and Charts -->
+<script>
+    $(document).ready(function(){
+        // Initialize Charts
+        window.charts = {};
+        {% for position in positions %}
+        var ctx{{ forloop.counter }} = document.getElementById('chart-{{ position.ticker.symbol }}').getContext('2d');
+        window.charts["{{ position.ticker.symbol }}"] = new Chart(ctx{{ forloop.counter }}, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: '{{ position.ticker.symbol }} Price',
+                    data: [],
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                    fill: false,
+                }]
+            },
+            options: {
+                scales: {
+                    x: {
+                        type: 'time',
+                        time: {
+                            unit: 'minute',
+                            displayFormats: {
+                                minute: 'h:mm a'
+                            }
+                        }
+                    },
+                    y: {
+                        beginAtZero: false
+                    }
+                }
+            }
+        });
+
+        // Fetch historical data to populate initial chart
+        $.ajax({
+            url: "{% url 'get_stock_data_api' %}",  // Ensure this URL is correctly defined
+            data: {
+                'ticker': '{{ position.ticker.symbol }}',
+                'period': '1d'
+            },
+            success: function(data){
+                if(data.historical_data){
+                    data.historical_data.forEach(function(entry){
+                        window.charts["{{ position.ticker.symbol }}"].data.labels.push(entry.Date);
+                        window.charts["{{ position.ticker.symbol }}"].data.datasets[0].data.push(entry.Close);
+                    });
+                    window.charts["{{ position.ticker.symbol }}"].update();
+                }
+            },
+            error: function(){
+                console.error("Failed to fetch historical data for {{ position.ticker.symbol }}.");
+            }
+        });
+        {% endfor %}
+
+        // Function to fetch live stock prices
+        function fetchLivePrices(){
+            $.ajax({
+                url: "{% url 'get_live_stock_prices' %}",
+                method: "GET",
+                success: function(data){
+                    const livePrices = data.live_prices;
+                    for(const ticker in livePrices){
+                        const price = livePrices[ticker];
+                        if(price === null){
+                            continue; // Skip if price data is unavailable
+                        }
+                        const row = $("#ticker-" + ticker);
+                        const priceCell = row.find(".current-price");
+                        const oldPrice = parseFloat(priceCell.text());
+                        priceCell.text(price.toFixed(2));
+
+                        // Calculate Change
+                        const change = price - oldPrice;
+                        row.find(".change").text(change.toFixed(2));
+
+                        // Update Chart
+                        if(window.charts && window.charts[ticker]){
+                            window.charts[ticker].data.labels.push(new Date().toLocaleTimeString());
+                            window.charts[ticker].data.datasets[0].data.push(price);
+                            if(window.charts[ticker].data.labels.length > 20){
+                                window.charts[ticker].data.labels.shift();
+                                window.charts[ticker].data.datasets[0].data.shift();
+                            }
+                            window.charts[ticker].update();
+                        }
+                    }
+
+                    // Update Order Book
+                    fetchOrderBook();
+
+                    // Update Position Book
+                    fetchPositionBook();
+                },
+                error: function(){
+                    console.error("Failed to fetch live stock prices.");
+                }
+            });
+        }
+
+        // Function to fetch Order Book
+        function fetchOrderBook(){
+            $.ajax({
+                url: "{% url 'get_order_book' %}",
+                method: "GET",
+                success: function(data){
+                    const orders = data.orders;
+                    let html = '';
+                    orders.forEach(function(order){
+                        html += `<tr>
+                                    <td>${order.ticker}</td>
+                                    <td>${order.type}</td>
+                                    <td>${order.quantity}</td>
+                                    <td>${order.price.toFixed(2)}</td>
+                                    <td>${order.status}</td>
+                                    <td>${order.created_at}</td>
+                                 </tr>`;
+                    });
+                    $("#order-book tbody").html(html);
+                },
+                error: function(){
+                    console.error("Failed to fetch order book.");
+                }
+            });
+        }
+
+        // Function to fetch Position Book
+        function fetchPositionBook(){
+            $.ajax({
+                url: "{% url 'get_position_book' %}",
+                method: "GET",
+                success: function(data){
+                    const positions = data.positions;
+                    let html = '';
+                    positions.forEach(function(position){
+                        html += `<tr>
+                                    <td>${position.ticker}</td>
+                                    <td>${position.quantity}</td>
+                                    <td>${position.average_price.toFixed(2)}</td>
+                                    <td>${position.current_price.toFixed(2)}</td>
+                                    <td>${position.pnl.toFixed(2)}</td>
+                                 </tr>`;
+                    });
+                    $("#position-book tbody").html(html);
+                },
+                error: function(){
+                    console.error("Failed to fetch position book.");
+                }
+            });
+        }
+
+        // Periodically fetch live prices every 5 seconds
+        setInterval(fetchLivePrices, 5000);
+
+        // Initialize Buy Modal with Ticker ID
+        $('.buy-btn').on('click', function(){
+            var tickerId = $(this).data('ticker-id');
+            $('#buy-ticker-id').val(tickerId);
+        });
+
+        // Initialize Sell Modal with Ticker ID
+        $('.sell-btn').on('click', function(){
+            var tickerId = $(this).data('ticker-id');
+            $('#sell-ticker-id').val(tickerId);
+        });
+
+        // Handle Buy Form Submission
+        $('#buyForm').on('submit', function(e){
+            e.preventDefault();
+            var form = $(this);
+            $.ajax({
+                url: "{% url 'synth_paper_broker' %}",
+                method: "POST",
+                data: form.serialize(),
+                success: function(response){
+                    if(response.status === 'success'){
+                        location.reload();  // Reload the page to reflect changes
+                    } else {
+                        if(response.errors){
+                            alert(response.errors);
+                        } else {
+                            alert(response.message);
+                        }
+                    }
+                },
+                error: function(){
+                    alert("An error occurred while placing the buy order.");
+                }
+            });
+        });
+
+        // Handle Sell Form Submission
+        $('#sellForm').on('submit', function(e){
+            e.preventDefault();
+            var form = $(this);
+            $.ajax({
+                url: "{% url 'synth_paper_broker' %}",
+                method: "POST",
+                data: form.serialize(),
+                success: function(response){
+                    if(response.status === 'success'){
+                        location.reload();  // Reload the page to reflect changes
+                    } else {
+                        if(response.errors){
+                            alert(response.errors);
+                        } else {
+                            alert(response.message);
+                        }
+                    }
+                },
+                error: function(){
+                    alert("An error occurred while placing the sell order.");
+                }
+            });
+        });
+    });
+</script>
+{% endblock extra_js %}
