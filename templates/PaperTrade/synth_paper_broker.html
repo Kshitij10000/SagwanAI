@@ -17,6 +17,16 @@
     .modal-header {
         background-color: #f8f9fa;
     }
+    /* Enhanced Modal Styling */
+    .modal-dialog {
+        max-width: 500px;
+    }
+    .modal-body .form-group {
+        margin-bottom: 15px;
+    }
+    .submit-order {
+        width: 100%;
+    }
 </style>
 {% endblock extra_css %}
 
@@ -41,7 +51,7 @@
         <h3>Funds: ${{ fund.balance }}</h3>
     </div>
 
-    <!-- Watchlist and Buy/Sell Section -->
+    <!-- Watchlist and Order Book Section -->
     <div class="section row">
         <div class="col-md-6">
             <h3>Watchlist</h3>
@@ -82,46 +92,34 @@
             </table>
         </div>
 
-        <!-- Buy/Sell Form Removed to prevent duplicate submissions -->
-        <!--
+        <!-- Order Book Section -->
         <div class="col-md-6">
-            <h3>Place Order</h3>
-            <form method="POST">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-success">Submit Order</button>
-            </form>
+            <h3>Order Book</h3>
+            <table class="table table-striped" id="order-book">
+                <thead>
+                    <tr>
+                        <th>Ticker</th>
+                        <th>Type</th>
+                        <th>Quantity</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td>{{ order.ticker.symbol }}</td>
+                        <td>{{ order.order_type }}</td>
+                        <td>{{ order.quantity }}</td>
+                        <td>{{ order.price }}</td>
+                        <td>{{ order.status }}</td>
+                        <td>{{ order.created_at }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-        -->
-    </div>
-
-    <!-- Order Book Section -->
-    <div class="section">
-        <h3>Order Book</h3>
-        <table class="table table-striped" id="order-book">
-            <thead>
-                <tr>
-                    <th>Ticker</th>
-                    <th>Type</th>
-                    <th>Quantity</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th>Created At</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for order in orders %}
-                <tr>
-                    <td>{{ order.ticker.symbol }}</td>
-                    <td>{{ order.order_type }}</td>
-                    <td>{{ order.quantity }}</td>
-                    <td>{{ order.price }}</td>
-                    <td>{{ order.status }}</td>
-                    <td>{{ order.created_at }}</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
     </div>
 
     <!-- Position Book Section -->
@@ -163,16 +161,24 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <!-- Hidden fields for Ticker ID and Order Type -->
+          <!-- Required Form Fields -->
           <input type="hidden" id="buy-ticker-id" name="ticker">
           <input type="hidden" name="order_type" value="BUY">
+          <div class="mb-3">
+            <label for="buy-ticker-symbol" class="form-label">Ticker Symbol</label>
+            <input type="text" class="form-control" id="buy-ticker-symbol" name="ticker_symbol_display" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="buy-current-price" class="form-label">Current Price</label>
+            <input type="text" class="form-control" id="buy-current-price" name="current_price_display" readonly>
+          </div>
           <div class="mb-3">
             <label for="buy-quantity" class="form-label">Quantity</label>
             <input type="number" class="form-control" id="buy-quantity" name="quantity" min="1" required>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-primary">Buy</button>
+          <button type="submit" class="btn btn-success submit-order">Buy</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         </div>
       </div>
@@ -191,16 +197,24 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <!-- Hidden fields for Ticker ID and Order Type -->
+          <!-- Required Form Fields -->
           <input type="hidden" id="sell-ticker-id" name="ticker">
           <input type="hidden" name="order_type" value="SELL">
+          <div class="mb-3">
+            <label for="sell-ticker-symbol" class="form-label">Ticker Symbol</label>
+            <input type="text" class="form-control" id="sell-ticker-symbol" name="ticker_symbol_display" readonly>
+          </div>
+          <div class="mb-3">
+            <label for="sell-current-price" class="form-label">Current Price</label>
+            <input type="text" class="form-control" id="sell-current-price" name="current_price_display" readonly>
+          </div>
           <div class="mb-3">
             <label for="sell-quantity" class="form-label">Quantity</label>
             <input type="number" class="form-control" id="sell-quantity" name="quantity" min="1" required>
           </div>
         </div>
         <div class="modal-footer">
-          <button type="submit" class="btn btn-danger">Sell</button>
+          <button type="submit" class="btn btn-danger submit-order">Sell</button>
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
         </div>
       </div>
@@ -212,6 +226,7 @@
 
 {% block extra_js %}
 <!-- Scripts for Live Updates and Charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     $(document).ready(function(){
         // Initialize Charts
@@ -290,10 +305,11 @@
                         // Calculate Change
                         const change = price - oldPrice;
                         row.find(".change").text(change.toFixed(2));
+                        row.find(".change").css('color', change >= 0 ? 'green' : 'red');
 
                         // Update Chart
                         if(window.charts && window.charts[ticker]){
-                            window.charts[ticker].data.labels.push(new Date().toLocaleTimeString());
+                            window.charts[ticker].data.labels.push(new Date());
                             window.charts[ticker].data.datasets[0].data.push(price);
                             if(window.charts[ticker].data.labels.length > 20){
                                 window.charts[ticker].data.labels.shift();
@@ -328,7 +344,7 @@
                                     <td>${order.ticker}</td>
                                     <td>${order.type}</td>
                                     <td>${order.quantity}</td>
-                                    <td>${order.price.toFixed(2)}</td>
+                                    <td>$${order.price.toFixed(2)}</td>
                                     <td>${order.status}</td>
                                     <td>${order.created_at}</td>
                                  </tr>`;
@@ -353,9 +369,9 @@
                         html += `<tr>
                                     <td>${position.ticker}</td>
                                     <td>${position.quantity}</td>
-                                    <td>${position.average_price.toFixed(2)}</td>
-                                    <td>${position.current_price.toFixed(2)}</td>
-                                    <td>${position.pnl.toFixed(2)}</td>
+                                    <td>$${position.average_price.toFixed(2)}</td>
+                                    <td>$${position.current_price.toFixed(2)}</td>
+                                    <td style="color: ${position.pnl >= 0 ? 'green' : 'red'}">$${position.pnl.toFixed(2)}</td>
                                  </tr>`;
                     });
                     $("#position-book tbody").html(html);
@@ -366,19 +382,29 @@
             });
         }
 
-        // Periodically fetch live prices every 5 seconds
-        setInterval(fetchLivePrices, 5000);
+        // Periodically fetch live prices every 10 seconds
+        setInterval(fetchLivePrices, 10000);
 
-        // Initialize Buy Modal with Ticker ID
+        // Initialize Buy Modal with Ticker ID and Symbol
         $('.buy-btn').on('click', function(){
             var tickerId = $(this).data('ticker-id');
+            var tickerSymbol = $(this).data('ticker-symbol');
             $('#buy-ticker-id').val(tickerId);
+            $('#buy-ticker-symbol').val(tickerSymbol);
+            // Optionally, fetch and set the current price
+            var currentPrice = $(this).closest('tr').find('.current-price').text();
+            $('#buy-current-price').val(`$${parseFloat(currentPrice).toFixed(2)}`);
         });
 
-        // Initialize Sell Modal with Ticker ID
+        // Initialize Sell Modal with Ticker ID and Symbol
         $('.sell-btn').on('click', function(){
             var tickerId = $(this).data('ticker-id');
+            var tickerSymbol = $(this).data('ticker-symbol');
             $('#sell-ticker-id').val(tickerId);
+            $('#sell-ticker-symbol').val(tickerSymbol);
+            // Optionally, fetch and set the current price
+            var currentPrice = $(this).closest('tr').find('.current-price').text();
+            $('#sell-current-price').val(`$${parseFloat(currentPrice).toFixed(2)}`);
         });
 
         // Handle Buy Form Submission

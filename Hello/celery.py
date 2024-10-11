@@ -17,7 +17,7 @@ app.autodiscover_tasks()
 # Define task routes if necessary
 app.conf.task_routes = {
     'Home.tasks.process_stock_data': {'queue': 'process_stock_data'},
-    'Home.tasks.fetch_live_tocker_data': {'queue': 'fetch_live_tocker_data'},
+    'Home.tasks.fetch_live_ticker_data': {'queue': 'fetch_live_ticker_data'},
 }
 
 @app.task(bind=True)

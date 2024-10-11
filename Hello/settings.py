@@ -33,7 +33,8 @@ ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost', cast=Csv())
 
 INSTALLED_APPS = [
     'Home',
-    'PaperTrade', 
+    'PaperTrade',
+    'fyers_services', 
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

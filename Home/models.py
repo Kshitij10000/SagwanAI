@@ -24,16 +24,6 @@ class stockdata_live_banner(models.Model):
         return f"{self.name}: {self.price}"
 
 
-
-
-class Live_Stock_Banner_Ticker(models.Model):
-    name = models.CharField(max_length=100)
-    ticker = models.CharField(max_length=40)
-
-    def __str__(self):
-        return self.name
-
-
 class NseTickers(models.Model):
     symbol = models.CharField(max_length=50, unique=True,db_index=True)
     name_of_company = models.CharField(max_length=100)	
@@ -93,27 +83,7 @@ class Broker(models.Model):
     def __str__(self):
         return self.name
 
-# Fyers Credentials Model
-class FyersCredentials(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='fyers_credentials')
-    broker = models.ForeignKey('Broker', on_delete=models.CASCADE)
-    ttop_key = models.CharField(max_length=255)
-    client_id = models.CharField(max_length=255)
-    secret_key = models.CharField(max_length=255)
-    redirect_uri = models.URLField(max_length=1024) 
-    response_type = models.CharField(max_length=50)
-    state = models.CharField(max_length=255)
-    access_token = models.CharField(max_length=1024, blank=True, null=True) 
-    token_expiry = models.DateTimeField(blank=True, null=True)
-    username = models.CharField(max_length=255, blank=True, null=True)  # New Field
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    
-    class Meta:
-        unique_together = ('user', 'broker')  # Ensures one set of credentials per broker per user
 
-    def __str__(self):
-        return f"{self.user.username} - {self.broker.name}"
     
 # watchlist models
 class Category(models.Model):
@@ -122,7 +92,7 @@ class Category(models.Model):
     def __str__(self):
         return self.name 
 
-class Ticker(models.Model):
+class All_Ticker(models.Model):
     symbol = models.CharField(max_length=20, unique=True)
     name = models.CharField(max_length=255)
     category = models.ForeignKey(Category, related_name='tickers', on_delete=models.CASCADE)

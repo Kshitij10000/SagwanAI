@@ -1,5 +1,5 @@
 import yfinance as yf
-from .models import Live_Stock_Banner_Ticker 
+from .models import  All_Ticker
 import logging
 
 logger = logging.getLogger(__name__)
@@ -7,10 +7,10 @@ logger = logging.getLogger(__name__)
 def fetch_Live_data():
     timeout_setting = 10  
     data = {}
-    stocks = Live_Stock_Banner_Ticker.objects.all()  
+    stocks = All_Ticker.objects.only('name','symbol')  
 
     for stock in stocks:
-        ticker = yf.Ticker(stock.ticker)
+        ticker = yf.Ticker(stock.symbol)
         try:
             current_data = ticker.history(period="1d", timeout=timeout_setting)
             if not current_data.empty:

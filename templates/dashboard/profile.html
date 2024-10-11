@@ -77,7 +77,6 @@
                 {% for cred in user.fyers_credentials.all %}
                     <div class="card mb-3 profile-card">
                         <div class="card-body">
-                            <p><strong>ttop_key:</strong> {{ cred.ttop_key|slice:":4" }}****</p>
                             <p><strong>client_id:</strong> {{ cred.client_id }}</p>
                             <p><strong>redirect_uri:</strong> {{ cred.redirect_uri }}</p>
                             <p><strong>response_type:</strong> {{ cred.response_type }}</p>

@@ -1,7 +1,7 @@
 # PaperTrade/models.py
 from django.db import models
 from django.contrib.auth.models import User
-from Home.models import Ticker  # Ensure this import matches your project structure
+from Home.models import All_Ticker # Ensure this import matches your project structure
 
 class Fund(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='funds')
@@ -23,7 +23,7 @@ class Order(models.Model):
     )
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
-    ticker = models.ForeignKey(Ticker, on_delete=models.CASCADE)
+    ticker = models.ForeignKey(All_Ticker, on_delete=models.CASCADE)
     order_type = models.CharField(max_length=4, choices=ORDER_TYPES)
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
@@ -35,7 +35,7 @@ class Order(models.Model):
 
 class Position(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='positions')
-    ticker = models.ForeignKey(Ticker, on_delete=models.CASCADE)
+    ticker = models.ForeignKey(All_Ticker, on_delete=models.CASCADE)
     quantity = models.PositiveIntegerField(default=0)
     average_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     current_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)

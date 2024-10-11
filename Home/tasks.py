@@ -11,8 +11,8 @@ import math
 logger = get_task_logger(__name__)
 
 @shared_task(bind=True)
-def fetch_live_tocker_data(self):
-    logger.info("Starting fetch_live_tocker_data task.")
+def fetch_live_ticker_data(self):
+    logger.info("Starting fetch_live_ticker_data task.")
     try:
         data = fetch_Live_data()
         for name, price in data.items():
@@ -21,7 +21,7 @@ def fetch_live_tocker_data(self):
                 logger.info(f"Updated {name} with price {price}.")
             else:
                 logger.warning(f"Data not available or error for {name}: {price}. Skipping.")
-        logger.info("Completed fetch_live_tocker_data task.")
+        logger.info("Completed fetch_live_ticker_data task.")
     except Exception as e:
         logger.error(f"An error occurred while fetching stock data: {str(e)}", exc_info=True)
 

@@ -1,7 +1,7 @@
 # nirmaan_policy/forms.py
 
 from django import forms
-from .models import Profile, FyersCredentials 
+from .models import Profile
 from PaperTrade.models import Order
 
 
@@ -21,21 +21,3 @@ class ProfileUpdateForm(forms.ModelForm):
 
 
 
-# Fyers Credentials Form
-class FyersCredentialsForm(forms.ModelForm):
-    class Meta:
-        model = FyersCredentials
-        fields = ['ttop_key', 'client_id', 'secret_key', 'redirect_uri', 'response_type', 'state']
-        widgets = {
-            'ttop_key': forms.TextInput(attrs={'class': 'form-control'}),
-            'client_id': forms.TextInput(attrs={'class': 'form-control'}),
-            'secret_key': forms.PasswordInput(attrs={'class': 'form-control'}),
-            'redirect_uri': forms.URLInput(attrs={'class': 'form-control'}),
-            'response_type': forms.TextInput(attrs={'class': 'form-control'}),
-            'state': forms.TextInput(attrs={'class': 'form-control'}),
-        }
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        # Add any additional validation if necessary
-        return cleaned_data

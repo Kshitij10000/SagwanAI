@@ -2,13 +2,13 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Fund, Order, Position, Trade, Ticker
+from .models import Fund, Order, Position, Trade, All_Ticker
 from .forms import OrderForm
 from django.http import JsonResponse
 from Home.yahoo_pull import get_instrument_past_data  # Ensure this function exists and works correctly
 from django.utils import timezone
 from decimal import Decimal
-import json
+from django.db import transaction
 
 @login_required
 def synth_paper_broker(request):
@@ -27,92 +27,94 @@ def synth_paper_broker(request):
     if request.method == 'POST':
         form = OrderForm(request.POST)
         if form.is_valid():
-            order = form.save(commit=False)
-            order.user = user
+            with transaction.atomic():  # Ensure atomicity
+                order = form.save(commit=False)
+                order.user = user
 
-            # Fetch current stock price using yfinance or a similar service
-            ticker_symbol = order.ticker.symbol
-            stock_data = get_instrument_past_data(ticker_symbol, period='1d')  # Ensure this returns correct data
-            if 'historical_data' in stock_data and stock_data['historical_data']:
-                # Assuming 'Close' is the latest price
-                current_price = Decimal(str(stock_data['historical_data'][-1]['Close']))
-                order.price = current_price
-                order.status = 'EXECUTED'
-                order.save()
+                # Fetch current stock price using yfinance or a similar service
+                ticker_symbol = order.ticker.symbol
+                stock_data = get_instrument_past_data(ticker_symbol, period='1d')  # Ensure this returns correct data
+                if 'historical_data' in stock_data and stock_data['historical_data']:
+                    # Assuming 'Close' is the latest price
+                    current_price = Decimal(str(stock_data['historical_data'][-1]['Close']))
+                    order.price = current_price
+                    order.status = 'EXECUTED'
+                    order.save()
 
-                # Update Fund and Position based on order type
-                if order.order_type == 'BUY':
-                    total_cost = Decimal(order.quantity) * order.price
-                    if fund.balance >= total_cost:
-                        fund.balance -= total_cost
-                        fund.save()
-
-                        # Update or create Position
-                        position, pos_created = Position.objects.get_or_create(user=user, ticker=order.ticker)
-                        total_quantity = Decimal(position.quantity) + Decimal(order.quantity)
-                        if total_quantity:
-                            position.average_price = ((position.average_price * Decimal(position.quantity)) + (order.price * Decimal(order.quantity))) / total_quantity
-                        position.quantity = total_quantity
-                        position.current_price = order.price
-                        position.save()
-                        messages.success(request, f"Bought {order.quantity} shares of {ticker_symbol} at ${order.price}")
-                    else:
-                        messages.error(request, "Insufficient funds to execute the buy order.")
-                        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                            return JsonResponse({'status': 'error', 'message': "Insufficient funds to execute the buy order."})
-                        return redirect('synth_paper_broker')
-
-                elif order.order_type == 'SELL':
-                    # Check if user has enough shares to sell
-                    try:
-                        position = Position.objects.get(user=user, ticker=order.ticker)
-                        if position.quantity >= order.quantity:
-                            position.quantity -= Decimal(order.quantity)
-                            position.current_price = order.price
-                            # Calculate P&L
-                            pnl = (order.price - position.average_price) * Decimal(order.quantity)
-                            position.pnl += pnl
-                            position.save()
-
-                            # Update Fund
-                            total_revenue = Decimal(order.quantity) * order.price
-                            fund.balance += total_revenue
+                    # Update Fund and Position based on order type
+                    if order.order_type == 'BUY':
+                        total_cost = Decimal(order.quantity) * order.price
+                        if fund.balance >= total_cost:
+                            fund.balance -= total_cost
                             fund.save()
 
-                            messages.success(request, f"Sold {order.quantity} shares of {ticker_symbol} at ${order.price}")
+                            # Update or create Position
+                            position, pos_created = Position.objects.get_or_create(user=user, ticker=order.ticker)
+                            total_quantity = Decimal(position.quantity) + Decimal(order.quantity)
+                            if total_quantity:
+                                position.average_price = ((position.average_price * Decimal(position.quantity)) + (order.price * Decimal(order.quantity))) / total_quantity
+                            position.quantity = total_quantity
+                            position.current_price = order.price
+                            position.save()
+                            messages.success(request, f"Bought {order.quantity} shares of {ticker_symbol} at ${order.price}")
                         else:
-                            messages.error(request, "Insufficient shares to execute the sell order.")
+                            messages.error(request, "Insufficient funds to execute the buy order.")
                             if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                                return JsonResponse({'status': 'error', 'message': "Insufficient shares to execute the sell order."})
+                                return JsonResponse({'status': 'error', 'message': "Insufficient funds to execute the buy order."})
                             return redirect('synth_paper_broker')
-                    except Position.DoesNotExist:
-                        messages.error(request, "You don't own any shares of this stock.")
-                        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                            return JsonResponse({'status': 'error', 'message': "You don't own any shares of this stock."})
-                        return redirect('synth_paper_broker')
 
-                # Log the trade
-                Trade.objects.create(
-                    order=order,
-                    executed_quantity=order.quantity,
-                    executed_price=order.price,
-                    executed_at=timezone.now()
-                )
+                    elif order.order_type == 'SELL':
+                        # Check if user has enough shares to sell
+                        try:
+                            position = Position.objects.get(user=user, ticker=order.ticker)
+                            if position.quantity >= order.quantity:
+                                position.quantity -= Decimal(order.quantity)
+                                position.current_price = order.price
+                                # Calculate P&L
+                                pnl = (order.price - position.average_price) * Decimal(order.quantity)
+                                position.pnl += pnl
+                                position.save()
 
-                # For AJAX requests, return a success response
-                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    return JsonResponse({'status': 'success', 'message': 'Order placed successfully.'})
+                                # Update Fund
+                                total_revenue = Decimal(order.quantity) * order.price
+                                fund.balance += total_revenue
+                                fund.save()
 
-                # Redirect to prevent duplicate submissions
-                return redirect('synth_paper_broker')
+                                messages.success(request, f"Sold {order.quantity} shares of {ticker_symbol} at ${order.price}")
+                            else:
+                                messages.error(request, "Insufficient shares to execute the sell order.")
+                                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                                    return JsonResponse({'status': 'error', 'message': "Insufficient shares to execute the sell order."})
+                                return redirect('synth_paper_broker')
+                        except Position.DoesNotExist:
+                            messages.error(request, "You don't own any shares of this stock.")
+                            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                                return JsonResponse({'status': 'error', 'message': "You don't own any shares of this stock."})
+                            return redirect('synth_paper_broker')
 
-            else:
-                messages.error(request, "Failed to fetch current stock price.")
-                if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-                    return JsonResponse({'status': 'error', 'message': "Failed to fetch current stock price."})
-                return redirect('synth_paper_broker')
+                    # Log the trade
+                    Trade.objects.create(
+                        order=order,
+                        executed_quantity=order.quantity,
+                        executed_price=order.price,
+                        executed_at=timezone.now()
+                    )
+
+                    # For AJAX requests, return a success response
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                        return JsonResponse({'status': 'success', 'message': 'Order placed successfully.'})
+
+                    # Redirect to prevent duplicate submissions
+                    return redirect('synth_paper_broker')
+
+                else:
+                    messages.error(request, "Failed to fetch current stock price.")
+                    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                        return JsonResponse({'status': 'error', 'message': "Failed to fetch current stock price."})
+                    return redirect('synth_paper_broker')
         else:
             # Form is invalid
+            print(form.errors)  # Debugging line to print form errors
             # Collect form errors and send as response
             errors = form.errors.get_json_data()
             # Format errors as a list of messages

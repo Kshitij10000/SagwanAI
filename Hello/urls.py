@@ -29,6 +29,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('Home.urls')),
     path('papertrade/', include('PaperTrade.urls')),
+    path('fyers_connect/', include('fyers_services.urls')),
 ]
 
 # Serve media files during development

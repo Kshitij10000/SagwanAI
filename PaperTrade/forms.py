@@ -1,6 +1,6 @@
 # PaperTrade/forms.py
 from django import forms
-from .models import Order, Ticker
+from .models import Order
 
 class OrderForm(forms.ModelForm):
     class Meta:
@@ -11,3 +11,4 @@ class OrderForm(forms.ModelForm):
             'order_type': forms.Select(choices=Order.ORDER_TYPES, attrs={'class': 'form-control'}),
             'quantity': forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
         }
+
