@@ -1,171 +1,141 @@
-# Nirmaan_Finance
+## SagwanAI 🚀📊
+SagwanAI is a Django-based web application designed to empower users with AI-driven financial insights and automated trading capabilities. This project leverages cutting-edge technologies to enhance investment strategies and streamline financial workflows for both enthusiasts and professionals.
 
-Nirmaan_Finance is a Django-based web application that provides users with real-time financial data, investment options, watchlists, and user profile management. The project integrates various technologies to offer a seamless experience for financial enthusiasts and professionals.
+## 🌟 Features
+👤 User Authentication and Registration
 
-## Features
+Secure user login and registration system
+Profile management with capabilities to upload profile pictures
 
-- **User Authentication and Registration**
-  - Secure user login and registration system.
-  - Profile management with the ability to upload profile pictures.
+## 🔐 API Security and Credential Protection
 
-- **Live Stock Data**
-  - Real-time display of stock prices using Yahoo Finance data.
-  - Interactive charts for stock performance visualization.
+Robust encryption for storing and handling broker API credentials
+Secure integration with multiple brokerage platforms
+Regular security audits and compliance with financial data protection standards
 
-- **Investment Options**
-  - Detailed financial data for NSE-listed companies.
-  - Dynamic tables with customizable columns for in-depth analysis.
+## 🤖 AI-Powered Stock Predictions
 
-- **Watchlist Functionality**
-  - Personalized watchlists for tracking selected stocks.
-  - Category-based stock filtering and search functionality.
+Real-time AI-based predictions for stock movements
+Automated trading decisions including entry, exit, stop loss, and target setting
 
-- **Email Notifications**
-  - Contact form for user inquiries.
-  - Email sending capabilities using SMTP.
+## 📈 Live Stock Data
 
-- **Background Task Processing**
-  - Asynchronous tasks for data fetching and processing using Celery.
-  - Scheduled tasks with Celery Beat for periodic updates.
+Real-time display of stock prices using Yahoo Finance data
+Interactive charts for trend visualization and performance analysis
 
-## Tech Stack
+## 💹 Automated Order Placement
 
-### Backend
+AI-driven execution of buy and sell orders based on predefined criteria and real-time market data
+Support for multiple brokerage APIs with secure credential management
 
-- **[Python 3.x](https://www.python.org/doc/)**
-  - The core programming language used for the project.
+## 📊 Position Tracking and Management
 
-- **[Django 5.1](https://docs.djangoproject.com/en/5.1/)**
-  - A high-level Python Web framework that encourages rapid development and clean, pragmatic design.
+Real-time monitoring and adjustment of stock positions
+Detailed reports and analysis on current holdings and historical performance
 
-- **[PostgreSQL](https://www.postgresql.org/docs/)**
-  - An advanced open-source relational database used as the primary database for the application.
+## 🧠 Market Analysis and Decision Making
 
-- **[Redis](https://redis.io/documentation)**
-  - An in-memory data structure store used as a message broker for Celery tasks.
+Comprehensive market analysis utilizing AI to determine investment viability
+Quick decision-making tools for agile trading
 
-- **[Celery 5.x](https://docs.celeryproject.org/en/stable/)**
-  - An asynchronous task queue/job queue used for handling background tasks.
+## 👀 Watchlist Functionality
 
-- **[Celery Beat](https://docs.celeryq.dev/en/stable/userguide/periodic-tasks.html)**
-  - A scheduler that enables scheduling periodic tasks within Celery.
+Personalized watchlists for tracking selected stocks
+Advanced filtering and search capabilities based on categories
 
-- **[django-celery-beat](https://github.com/celery/django-celery-beat)**
-  - An extension that stores Celery Beat schedules in the Django database, allowing dynamic scheduling.
+## 📧 Email Notifications
 
-- **[django-celery-results](https://github.com/celery/django-celery-results)**
-  - Enables storing Celery task results in the Django database.
+Automated email alerts for significant market movements and trade confirmations
+Contact form for user inquiries and support
 
-- **[yfinance](https://pypi.org/project/yfinance/)**
-  - A library to download market data from Yahoo Finance, used for fetching live stock data.
+## ⚙️ Background Task Processing
 
-- **[pandas](https://pandas.pydata.org/docs/)**
-  - A data analysis and manipulation tool used for handling data frames and data manipulation in tasks.
+Asynchronous tasks for data fetching, market analysis, and order execution using Celery
+Scheduled tasks with Celery Beat for periodic data updates and system checks
 
-- **[Import-Export](https://django-import-export.readthedocs.io/en/latest/)**
-  - A Django application and library for importing and exporting data with included admin integration.
+## 🧪 Paper Trading
 
-### Frontend
+Simulate trades in a risk-free environment to test AI strategies
+Realistic market conditions using real-time data without financial risk
+Performance tracking and analysis of paper trading results
 
-- **[Bootstrap 5.3](https://getbootstrap.com/docs/5.3/getting-started/introduction/)**
-  - A CSS framework directed at responsive, mobile-first front-end web development.
+## 🛠️ Tech Stack
+# Backend
 
-- **[Chart.js](https://www.chartjs.org/docs/latest/)**
-  - An open-source JavaScript library for data visualization, used for displaying interactive stock charts.
+Python 3.x: The core programming language used for backend logic
+Django 5.1: A high-level Python Web framework that encourages rapid development
+PostgreSQL: Advanced open-source relational database
+Redis: In-memory data structure store used as a message broker
+Celery 5.x: Asynchronous task queue/job queue
+Celery Beat: Scheduler that enables scheduling periodic tasks
+django-celery-beat: Stores Celery Beat schedules in the Django database
+django-celery-results: Enables storing Celery task results in the Django database
+yfinance: Library to fetch real-time market data from Yahoo Finance
+pandas: Data analysis and manipulation library
 
-- **[jQuery](https://api.jquery.com/)**
-  - A fast, small, and feature-rich JavaScript library used for simplified AJAX calls and DOM manipulation.
+# Frontend
 
-- **HTML5 & CSS3**
-  - Markup and styling for structuring and designing the web pages.
+Bootstrap 5.3: Responsive, mobile-first front-end framework
+Chart.js: JavaScript library for interactive charts
+jQuery: Simplifies HTML document traversing, event handling, and Ajax interactions
+HTML5 & CSS3: Standard web technologies for structuring and designing web pages
 
-- **JavaScript**
-  - Client-side scripting for interactive features.
+## 🚀 Installation
+Prerequisites
 
-### Other Libraries and Tools
+Python 3.x, PostgreSQL, Redis, and Node.js with npm (for managing frontend dependencies)
 
-- **[django-import-export](https://django-import-export.readthedocs.io/en/latest/)**
-  - Facilitates data import and export in the admin interface.
+# Steps
 
-- **[django.contrib.admin](https://docs.djangoproject.com/en/5.1/ref/contrib/admin/)**
-  - Django's built-in admin interface for managing models.
+Clone the Repository:
+git clone https://github.com/yourusername/SagwanAI.git
 
-- **[django.contrib.auth](https://docs.djangoproject.com/en/5.1/topics/auth/)**
-  - Django's authentication framework for user authentication and authorization.
+Set Up Virtual Environment and Install Dependencies:
+Using Python's venv and pip
+Configure Environment Variables:
+Rename .env.example to .env and adjust settings, including API keys and security configurations
+Database Setup:
+python manage.py migrate
 
-- **[django.contrib.messages](https://docs.djangoproject.com/en/5.1/ref/contrib/messages/)**
-  - A framework for storing and retrieving temporary messages.
+Static Files:
+python manage.py collectstatic
 
-- **[django.contrib.staticfiles](https://docs.djangoproject.com/en/5.1/ref/contrib/staticfiles/)**
-  - Manages static files like CSS, JavaScript, and images.
+Run the Development Server:
+python manage.py runserver
 
-- **Logging**
-  - Python's built-in logging module used for tracking events during execution.
+Start Redis and Celery Services:
+Ensure background services for task handling are running
 
-## Installation
+## 🖥️ Usage
 
-### Prerequisites
+Visit http://localhost:8000/ to register or log in.
+Navigate to the profile section to securely add your broker API credentials.
+Use the navigation bar to explore AI features, manage investments, and access the paper trading platform.
+Test strategies using the paper trading feature before engaging in live trading.
+Access the admin interface for additional management capabilities.
 
-- **Python 3.x** installed on your system.
-- **PostgreSQL** database setup.
-- **Redis** server running.
-- **Node.js and npm** (for frontend dependencies, if necessary).
+## 🔒 API Security
+SagwanAI prioritizes the security of user credentials and financial data:
 
-### Steps
+All broker API credentials are encrypted at rest using industry-standard encryption algorithms.
+Secure communication protocols (HTTPS) are enforced for all data transmissions.
+Regular security audits are conducted to ensure the integrity of the system.
+Users have full control over their API integrations and can revoke access at any time.
 
-1. **Clone the Repository**
+## 📝 Paper Trading
+The paper trading feature allows users to:
 
-   ```bash
-   git clone https://github.com/yourusername/Nirmaan_finance.git
-   cd Nirmaan_finance
+Test AI-generated trading strategies without financial risk.
+Simulate market conditions using real-time data.
+Track and analyze performance of simulated trades.
+Gain confidence in the AI system before transitioning to live trading.
 
-2. **Create a Virtual Environment**
-    python -m venv venv
-    source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+##🤝 Contributing
+Contributions to SagwanAI are welcome! Fork the repository and create a pull request with your changes.
 
-3. **Install Backend Dependencies**
-    pip install -r requirements.txt
+##📄 License
+Licensed under the MIT License.
 
-4. **Configure Environment Variables**
-    Rename .env.example to .env and update the settings accordingly.
-
-5.  **Apply Migrations**
-    
-    python manage.py migrate
-
-6.  **Collect Static Files**
-    python manage.py collectstatic
-
-7.  **Run the Development Server**
-    python manage.py runserver
-
-8.  **Start Redis Server**
-    Ensure Redis is running on your system. For most systems, you can start it using:
-    redis-server
-
-9.  **Start Celery Worker**
-    celery -A Nirmaan_finance worker -l info
-
-10. **Start Celery Beat**
-    celery -A Nirmaan_finance beat -l info
-
-### Usage
-Visit http://localhost:8000/ in your web browser.
-
-Register a new user or log in with existing credentials.
-
-Navigate through the application using the navigation bar.
-
-Access the admin interface at http://localhost:8000/admin/ (requires superuser credentials).
-
-Contributing
-Contributions are welcome! Please fork the repository and create a pull request with your changes.
-
-### License
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-### Acknowledgments
-Thanks to the developers of Django and the open-source libraries used in this project.
-Yahoo Finance for providing financial data.
-Contact
+##🙏 Acknowledgments
+Special thanks to the developers of Django, Yahoo Finance, and the many open-source libraries that support this project.
 For any inquiries or feedback, please contact kshitijsarve2001@gmail.com.
