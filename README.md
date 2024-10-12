@@ -122,20 +122,12 @@ Secure communication protocols (HTTPS) are enforced for all data transmissions.
 Regular security audits are conducted to ensure the integrity of the system.
 Users have full control over their API integrations and can revoke access at any time.
 
-## 📝 Paper Trading
-The paper trading feature allows users to:
-
-Test AI-generated trading strategies without financial risk.
-Simulate market conditions using real-time data.
-Track and analyze performance of simulated trades.
-Gain confidence in the AI system before transitioning to live trading.
-
-##🤝 Contributing
+## 🤝 Contributing
 Contributions to SagwanAI are welcome! Fork the repository and create a pull request with your changes.
 
-##📄 License
+## 📄 License
 Licensed under the MIT License.
 
-##🙏 Acknowledgments
+## 🙏 Acknowledgments
 Special thanks to the developers of Django, Yahoo Finance, and the many open-source libraries that support this project.
 For any inquiries or feedback, please contact kshitijsarve2001@gmail.com.
