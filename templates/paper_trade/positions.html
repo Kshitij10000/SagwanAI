@@ -1,0 +1,149 @@
+<!-- paper_trade/templates/paper_trade/positions.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Positions</title>
+    <!-- Bootstrap CSS for styling and modals -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> 
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Positions</h2>
+        <a href="{% url 'paper_trade:watchlist' %}" class="btn btn-secondary mb-3">Back to Watchlist</a>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Ticker</th>
+                    <th>Quantity</th>
+                    <th>Average Price</th>
+                    <th>Current Price</th>
+                    <th>P&L</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for position in positions %}
+                <tr data-ticker="{{ position.ticker }}" data-current-price="{{ position.current_price }}">
+                    <td>{{ position.ticker }}</td>
+                    <td>{{ position.quantity }}</td>
+                    <td>{{ position.average_price }}</td>
+                    <td class="current-price">{{ position.current_price }}</td>
+                    <td>{{ position.pnl }}</td>
+                    <td>
+                        <button class="btn btn-sm btn-warning exit-btn">Exit Position</button>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center">No positions available.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Exit Position Modal -->
+    <div class="modal fade" id="exitModal" tabindex="-1" role="dialog" aria-labelledby="exitModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <form id="exit-form">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="exitModalLabel">Exit Position</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                  {% csrf_token %}
+                  <input type="hidden" name="ticker" id="exit-ticker">
+                  <div class="form-group">
+                      <label for="current_price">Current Price</label>
+                      <input type="number" step="0.01" class="form-control" id="exit-current-price" name="current_price" readonly>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-danger">Exit Position</button>
+              </div>
+            </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            // Open exit modal on Exit button click
+            $('.exit-btn').click(function(){
+                var row = $(this).closest('tr');
+                var ticker = row.data('ticker');
+                var currentPrice = row.data('current-price');
+
+                $('#exit-ticker').val(ticker);
+                $('#exit-current-price').val(currentPrice);
+
+                $('#exitModal').modal('show');
+            });
+
+            // Handle exit form submission
+            $('#exit-form').submit(function(e){
+                e.preventDefault();
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    url: "{% url 'paper_trade:exit_position' %}",
+                    method: "POST",
+                    data: formData,
+                    success: function(response){
+                        if(response.status === 'success'){
+                            alert('Position exited successfully!');
+                            $('#exitModal').modal('hide');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function(){
+                        alert('An error occurred while exiting the position.');
+                    }
+                });
+            });
+
+            // Function to update current prices periodically
+            function updateCurrentPrices(){
+                $.ajax({
+                    url: "{% url 'Home:home-banner-tickers' %}",  // Adjust based on Home app's URL configuration
+                    method: "GET",
+                    success: function(data){
+                        var stocks = data.stocks;
+                        stocks.forEach(function(stock){
+                            var row = $('tr[data-ticker="' + stock.name + '"]');
+                            var newPrice = parseFloat(stock.price);
+                            row.find('.current-price').text(stock.price);
+                            row.data('current-price', stock.price);
+
+                            // Optionally, update P&L here based on new current price
+                            // This requires additional logic to recalculate P&L
+                        });
+                    },
+                    error: function(){
+                        console.log('Error fetching live data.');
+                    }
+                });
+            }
+
+            // Update current prices every 5 seconds
+            setInterval(updateCurrentPrices, 5000);
+        });
+    </script>
+</body>
+</html>

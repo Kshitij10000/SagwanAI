@@ -1,0 +1,199 @@
+<!-- paper_trade/templates/paper_trade/watchlist.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Watchlist</title>
+    <!-- Bootstrap CSS for styling and modals -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
+    <!-- jQuery and Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script> 
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <style>
+        body {
+            padding-top: 20px;
+        }
+        .price-up {
+            color: green;
+        }
+        .price-down {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <h2>Watchlist</h2>
+        <div class="row">
+            <!-- Watchlist Sidebar -->
+            <div class="col-md-3">
+                <table class="table table-striped" id="watchlist-table">
+                    <thead>
+                        <tr>
+                            <th>Ticker</th>
+                            <th>Price</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stock in stocks %}
+                        <tr data-ticker="{{ stock.name }}" data-price="{{ stock.price }}">
+                            <td>{{ stock.name }}</td>
+                            <td class="price">{{ stock.price }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-primary buy-btn">Buy</button>
+                                <button class="btn btn-sm btn-danger sell-btn">Sell</button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="mb-3">
+                    <a href="{% url 'paper_trade:trade_book' %}" class="btn btn-info">View Trade Book</a>
+                    <a href="{% url 'paper_trade:positions' %}" class="btn btn-success">View Positions</a>
+                </div>
+                <!-- Additional Content Can Be Added Here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Order Modal -->
+    <div class="modal fade" id="orderModal" tabindex="-1" role="dialog" aria-labelledby="orderModalLabel" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <form id="order-form">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="orderModalLabel">Place Order</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                  {% csrf_token %}
+                  <input type="hidden" name="ticker" id="modal-ticker">
+                  <div class="form-group">
+                      <label for="modal-price">Price</label>
+                      <input type="number" step="0.01" class="form-control" id="modal-price" name="price" readonly>
+                  </div>
+                  <div class="form-group">
+                      <label for="order_type">Order Type</label>
+                      <select class="form-control" id="order_type" name="order_type">
+                          <option value="BUY">Buy</option>
+                          <option value="SELL">Sell</option>
+                      </select>
+                  </div>
+                  <div class="form-group">
+                      <label for="execution_type">Execution Type</label>
+                      <select class="form-control" id="execution_type" name="execution_type">
+                          <option value="MARKET">Market</option>
+                          <option value="LIMIT">Limit</option>
+                      </select>
+                  </div>
+                  <div class="form-group">
+                      <label for="quantity">Quantity</label>
+                      <input type="number" class="form-control" id="quantity" name="quantity" required>
+                  </div>
+                  <div class="form-group">
+                      <label for="funds_needed">Funds Needed</label>
+                      <input type="number" step="0.01" class="form-control" id="funds_needed" name="funds_needed" readonly>
+                  </div>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Place Order</button>
+              </div>
+            </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+        $(document).ready(function(){
+            // Open modal on Buy/Sell button click
+            $('.buy-btn, .sell-btn').click(function(){
+                var row = $(this).closest('tr');
+                var ticker = row.data('ticker');
+                var price = row.data('price');
+                var orderType = $(this).hasClass('buy-btn') ? 'BUY' : 'SELL';
+
+                $('#modal-ticker').val(ticker);
+                $('#modal-price').val(price);
+                $('#order_type').val(orderType);
+                $('#execution_type').val('MARKET'); // Default to Market
+
+                $('#orderModal').modal('show');
+            });
+
+            // Update funds needed based on quantity and price
+            $('#quantity').on('input', function(){
+                var quantity = $(this).val();
+                var price = parseFloat($('#modal-price').val());
+                if(quantity && price){
+                    $('#funds_needed').val((quantity * price).toFixed(2));
+                } else {
+                    $('#funds_needed').val('');
+                }
+            });
+
+            // Handle order form submission
+            $('#order-form').submit(function(e){
+                e.preventDefault();
+                var formData = $(this).serialize();
+
+                $.ajax({
+                    url: "{% url 'paper_trade:place_order' %}",
+                    method: "POST",
+                    data: formData,
+                    success: function(response){
+                        if(response.status === 'success'){
+                            alert('Order placed successfully!');
+                            $('#orderModal').modal('hide');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function(){
+                        alert('An error occurred while placing the order.');
+                    }
+                });
+            });
+
+            // Function to update prices periodically
+            function updatePrices(){
+                $.ajax({
+                    url: "{% url 'API_Banner_ticker_live' %}",  // Adjust based on Home app's URL configuration
+                    method: "GET",
+                    success: function(data){
+                        var stocks = data.stocks;
+                        stocks.forEach(function(stock){
+                            var row = $('tr[data-ticker="' + stock.name + '"]');
+                            var oldPrice = parseFloat(row.data('price'));
+                            var newPrice = parseFloat(stock.price);
+                            row.find('.price').text(stock.price);
+                            row.data('price', stock.price);
+                            if(newPrice > oldPrice){
+                                row.find('.price').addClass('price-up').removeClass('price-down');
+                            } else if(newPrice < oldPrice){
+                                row.find('.price').addClass('price-down').removeClass('price-up');
+                            } else {
+                                row.find('.price').removeClass('price-up price-down');
+                            }
+                        });
+                    },
+                    error: function(){
+                        console.log('Error fetching live data.');
+                    }
+                });
+            }
+
+            // Update prices every 5 seconds
+            setInterval(updatePrices, 5000);
+        });
+    </script>
+</body>
+</html>

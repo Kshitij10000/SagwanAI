@@ -1,0 +1,56 @@
+<!-- paper_trade/templates/paper_trade/trade_book.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Trade Book</title>
+    <!-- Bootstrap CSS for styling -->
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"/>
+    <style>
+        body {
+            padding-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Trade Book</h2>
+        <a href="{% url 'paper_trade:broker_main' %}" class="btn btn-secondary mb-3">Back to Watchlist</a>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Order ID</th>
+                    <th>Ticker</th>
+                    <th>Order Type</th>
+                    <th>Execution Type</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Funds Needed</th>
+                    <th>Status</th>
+                    <th>Created At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for order in orders %}
+                <tr>
+                    <td>{{ order.id }}</td>
+                    <td>{{ order.ticker }}</td>
+                    <td>{{ order.order_type }}</td>
+                    <td>{{ order.execution_type }}</td>
+                    <td>{{ order.price }}</td>
+                    <td>{{ order.quantity }}</td>
+                    <td>{{ order.funds_needed }}</td>
+                    <td>{{ order.status }}</td>
+                    <td>{{ order.created_at|date:"Y-m-d H:i:s" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="9" class="text-center">No orders placed yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>
